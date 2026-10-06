@@ -131,6 +131,46 @@ function extractScene(opts) {
       lines: 1, lineHeight: lh, fontSize: ps.size, ws: 'normal', anon: false, firstH: lh, pseudoPrefix: false });
   };
 
+  // Fragmentos por linea y por nodo de texto (para cajas con fuentes mezcladas:
+  // Canva aplica una sola fuente por caja al importar PPTX).
+  const fontKey = (f) => (f || '').split(',')[0].trim().replace(/["']/g, '').toLowerCase();
+  const fragsFor = (seg) => {
+    const out = [];
+    for (const p of seg) {
+      if (!p.node) continue;
+      const node = p.node, parent = node.parentElement;
+      const st = runStyle(parent, effOpacity(parent));
+      const txt = node.textContent;
+      const rg = document.createRange();
+      let cur = null;
+      for (let i = 0; i < txt.length; i++) {
+        rg.setStart(node, i); rg.setEnd(node, i + 1);
+        const rs = rg.getClientRects();
+        if (!rs.length) continue;
+        const rc = rs[rs.length - 1];
+        if (rc.width < 0.01 && rc.height < 0.01) continue;
+        let ch = txt[i];
+        if (/[ \t\n\r\f]/.test(ch) && !/pre/.test(st.ws)) ch = ' ';
+        const sameLine = cur && Math.abs(rc.top - cur.top) < rc.height * 0.5 && rc.left >= cur.right - 3;
+        if (sameLine) {
+          if (!(ch === ' ' && cur.text.endsWith(' '))) cur.text += ch;
+          cur.right = Math.max(cur.right, rc.right);
+          cur.bottom = Math.max(cur.bottom, rc.bottom);
+        } else {
+          if (cur) out.push(cur);
+          cur = ch === ' ' ? null : { text: ch, left: rc.left, top: rc.top, right: rc.right, bottom: rc.bottom, st };
+        }
+      }
+      if (cur) out.push(cur);
+    }
+    return out.map(f => {
+      let t = f.text.replace(/ +$/, '');
+      if (f.st.transform === 'uppercase') t = t.toUpperCase();
+      else if (f.st.transform === 'lowercase') t = t.toLowerCase();
+      return { ...f.st, text: t, x: f.left, y: f.top, w: f.right - f.left, h: f.bottom - f.top };
+    }).filter(f => f.text.trim());
+  };
+
   const handledText = new Set();
 
   const emitTextFor = (container, op) => {
@@ -200,6 +240,7 @@ function extractScene(opts) {
         lines: tops.length, lineHeight: lh, fontSize: fs,
         ws: csC.whiteSpace, anon: isFlexLike(csC), firstH: rects[0].height,
         pseudoPrefix,
+        frags: new Set(runs.filter(r => !r.br && !r.pseudo && r.text.trim()).map(r => fontKey(r.font))).size > 1 ? fragsFor(seg) : null,
       });
     });
   };

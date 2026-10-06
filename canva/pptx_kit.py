@@ -156,6 +156,18 @@ def arrow_shape(slide, x, y, w, h, color="#FFD21F", alpha=1.0, name: str | None 
     return shp
 
 
+def triangle(slide, x, y, w, h, color="#FFD21F", rotation=0, alpha=1.0, name=None):
+    """Triangulo isosceles relleno; rotation=90 apunta a la derecha, 180 hacia abajo."""
+    shp = slide.shapes.add_shape(MSO_SHAPE.ISOSCELES_TRIANGLE, px(x), px(y), px(w), px(h))
+    shp.rotation = rotation
+    _style_fill(shp, color, alpha)
+    _style_line(shp, None)
+    _no_shadow(shp)
+    if name:
+        shp.name = name
+    return shp
+
+
 def corners(slide, x, y, w, h, size=34, color="#FFD21F", width=3.0, which="tl,tr,bl,br",
             alpha=1.0):
     """Esquineros en L (marcas de encuadre) dibujados con rectangulos finos."""

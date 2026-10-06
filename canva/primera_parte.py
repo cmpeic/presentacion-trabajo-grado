@@ -278,11 +278,11 @@ def hipotesis(prs, nota):
         text(s, 720, ay - 64 if j == 0 else ay + 14, 220, 40, verb, size=22, bold=True,
              font=FONT_HEAD, color=YELLOW, spacing=2, align="center")
     rect(s, MARGIN, 930, 1728, 76, fill=SURFACE, line=BLUE_LIGHT, line_w=1.5, line_alpha=0.45)
-    text(s, MARGIN + 36, 930, 1660, 76,
-         [[{"text": "CONTRASTE   ", "color": YELLOW, "bold": True, "font": FONT_HEAD,
-            "size": 22, "spacing": 2},
-           {"text": "Rendimiento predictivo, registros del uso del modelo y eficiencia temporal",
-            "size": 28, "font": FONT_TXT}]], anchor="middle")
+    text(s, MARGIN + 36, 930, 220, 76, "CONTRASTE", size=22, bold=True, font=FONT_HEAD,
+         color=YELLOW, spacing=2, anchor="middle")
+    text(s, MARGIN + 260, 930, 1440, 76,
+         "Rendimiento predictivo, registros del uso del modelo y eficiencia temporal",
+         size=28, font=FONT_TXT, anchor="middle")
     notes(s, nota)
 
 

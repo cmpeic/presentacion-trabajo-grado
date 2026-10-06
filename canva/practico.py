@@ -9,7 +9,7 @@ from PIL import Image
 from scipy import ndimage
 
 from pptx_kit import (FONT_BODY, FONT_HEAD, FONT_MONO, add_slide, ellipse, image, image_fit,
-                      line, notes, rect, text)
+                      line, notes, rect, text, triangle)
 from theme import FONDO, header
 
 SINGLE_LINE_WRAP = False  # True solo para previsualizar con LibreOffice
@@ -92,7 +92,8 @@ def _img(slide, it):
         image(slide, path, x, y, w, h, alpha=alpha)
 
 
-MARKERS = {"▪": "square", "■": "square", "●": "dot", "•": "dot"}
+MARKERS = {"▪": "square", "■": "square", "●": "dot", "•": "dot", "►": "right", "▶": "right",
+           "▸": "right", "▼": "down", "▾": "down"}
 
 
 def _marker_shape(slide, it):
@@ -108,17 +109,59 @@ def _marker_shape(slide, it):
     bx, by, bw, bh = it["bbox"]
     lh = it["lineHeight"]
     cx, cy = bx + size * 0.3, by + (it.get("firstH") or lh) / 2
-    if MARKERS[glyph] == "square":
+    kind = MARKERS[glyph]
+    col, a = r["color"], r.get("alpha", 1)
+    if kind == "square":
         side = size * 0.36
-        rect(slide, cx - side / 2, cy - side / 2, side, side, fill=r["color"],
-             fill_alpha=r.get("alpha", 1), name="Marcador")
+        rect(slide, cx - side / 2, cy - side / 2, side, side, fill=col, fill_alpha=a,
+             name="Marcador")
+    elif kind == "dot":
+        ellipse(slide, cx, cy, size * 0.17, fill=col, fill_alpha=a)
     else:
-        ellipse(slide, cx, cy, size * 0.17, fill=r["color"], fill_alpha=r.get("alpha", 1))
+        # triangulo centrado en el glifo original (la rotacion es sobre el centro)
+        tw, th = size * 0.78, size * 0.68
+        gcx = bx + min(bw, size) / 2
+        triangle(slide, gcx - tw / 2, cy - th / 2, tw, th, color=col,
+                 rotation=90 if kind == "right" else 180, alpha=a, name="Flecha")
     return True
+
+
+def _frag_spec(r, size=None):
+    t = r["text"]
+    for a, b in GLYPHS.items():
+        t = t.replace(a, b)
+    spec = {"text": t, "size": size or r["size"], "bold": r.get("weight", 400) >= 600,
+            "italic": r.get("italic", False), "font": _font(r.get("font", "")),
+            "color": r["color"], "alpha": r.get("alpha", 1)}
+    if r.get("spacing"):
+        spec["spacing"] = r["spacing"] * 0.75
+    return spec
+
+
+def _text_frags(slide, it):
+    """Caja con fuentes mezcladas: un cuadro sin ajuste por linea y por fragmento."""
+    frags = it["frags"]
+    if it.get("pseudoPrefix") and it["runs"] and it["runs"][0].get("pseudo"):
+        cx = it["content"][0]
+        f0 = frags[0]
+        pre = {"type": "text", "runs": [it["runs"][0]], "align": "left",
+               "bbox": [cx, f0["y"], it["runs"][0]["size"] * 1.2, f0["h"]],
+               "content": [cx, f0["y"], it["runs"][0]["size"] * 1.2, f0["h"]], "lines": 1,
+               "lineHeight": f0["h"], "fontSize": it["runs"][0]["size"], "firstH": f0["h"]}
+        _text(slide, pre)
+    for f in frags:
+        spec = _frag_spec(f)
+        w = f["w"] * 1.06 + 8
+        ls = (f["h"] / f["size"]) if f["size"] else 1.2
+        text(slide, f["x"], f["y"], w, f["h"] + 2, [[spec]], size=f["size"], line_spacing=ls,
+             wrap=SINGLE_LINE_WRAP)
 
 
 def _text(slide, it):
     if _marker_shape(slide, it):
+        return
+    if it.get("frags"):
+        _text_frags(slide, it)
         return
     runs = it["runs"]
     if it.get("anon") and it.get("pseudoPrefix") and len(runs) > 1 and runs[0].get("pseudo"):
@@ -165,7 +208,8 @@ def _text(slide, it):
     fs = it["fontSize"]
     nlines = it["lines"]
     first_h = it.get("firstH") or min(bh, fs * 1.25)
-    y = by - (lh - first_h) / 2
+    # con interlineado menor que la letra, Canva no sube el texto: no compensar
+    y = by - max(0.0, (lh - first_h) / 2)
     h = max(bh, nlines * lh) + 2
     align = it["align"] if it["align"] in ("left", "center", "right", "justify") else "left"
     single = nlines == 1 and len(paragraphs) == 1
