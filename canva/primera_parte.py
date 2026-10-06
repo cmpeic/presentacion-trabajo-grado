@@ -316,89 +316,106 @@ def variables(prs, nota):
 
 # ------------------------------------------------------------------- 22 matriz
 def matriz(prs, nota):
+    from componentes import PANEL_2, ecuacion, tag
+
     s = add_slide(prs, bg_image=FONDO)
     header(s, "Matriz de operacionalización de variables")
-    x0, y0 = MARGIN, 168
-    cols = [390, 320, 530, 488]
+    x0, y0 = MARGIN, 172
+    cols = [446, 282, 520, 480]
     xs = [x0]
     for c in cols:
         xs.append(xs[-1] + c)
     tw = sum(cols)
-    hh = 56
+    hh = 52
     rect(s, x0, y0, tw, hh, fill="#0B5EA8")
     for j, t in enumerate(["VARIABLE", "DIMENSIÓN", "INDICADOR", "SUBINDICADOR"]):
-        text(s, xs[j] + 22, y0, cols[j] - 30, hh, t, size=22, bold=True, font=FONT_HEAD,
-             anchor="middle", spacing=1.5)
+        text(s, xs[j] + 24, y0, cols[j] - 30, hh, t, size=20, bold=True, font=FONT_HEAD,
+             anchor="middle", spacing=2)
     y = y0 + hh
-    filas = []  # tramos (y, h) de filas de datos para los divisores
 
-    def section(label):
-        nonlocal y
-        rect(s, x0, y, tw, 42, fill="#0F2C52")
-        text(s, x0 + 22, y, tw - 40, 42, label.upper(), size=20, bold=True, font=FONT_HEAD,
-             color=YELLOW, anchor="middle", spacing=1.5)
-        y += 42
+    def variable(yy, h, tipo, nombre, color):
+        from componentes import wrap_lines
 
-    def cell(j, yy, h, content, size=23, bold=False, color=PAPER):
-        text(s, xs[j] + 20, yy + 10, cols[j] - 36, h - 20, content, size=size, bold=bold,
-             font=FONT_TXT, color=color, anchor="middle", line_spacing=1.2)
+        rect(s, x0, yy, 8, h, fill=color)
+        n = len(wrap_lines(nombre, 22, cols[0] - 70, FONT_HEAD, True))
+        bloque = 36 + 12 + n * 22 * 1.22
+        top = yy + (h - bloque) / 2
+        tag(s, x0 + 28, top, tipo, fill=color if color == YELLOW else "#0B5EA8",
+            color="#07172D" if color == YELLOW else PAPER, size=18, h=36)
+        text(s, x0 + 28, top + 48, cols[0] - 50, n * 22 * 1.22 + 6, nombre, size=22, bold=True,
+             font=FONT_HEAD, line_spacing=1.22)
 
-    def bullets(items):
-        return [[{"text": "•  ", "color": YELLOW, "bold": True}, {"text": it}] for it in items]
+    def celda(j, yy, h, contenido, size=23, color=PAPER, anchor="middle"):
+        text(s, xs[j] + 24, yy + 14, cols[j] - 44, h - 28, contenido, size=size,
+             font=FONT_TXT, color=color, anchor=anchor, line_spacing=1.25)
 
-    def row_bg(yy, h, k):
-        rect(s, x0, yy, tw, h, fill=PANEL if k % 2 == 0 else "#0C2445", line=LINE, line_w=1,
-             line_alpha=0.25)
-        filas.append((yy, h))
+    def vinetas(j, yy, h, items):
+        n = len(items)
+        step = 34
+        top = yy + (h - n * step) / 2
+        for k, it in enumerate(items):
+            ellipse(s, xs[j] + 30, top + k * step + 16, 4.5, fill=YELLOW)
+            text(s, xs[j] + 46, top + k * step, cols[j] - 60, step, it, size=21, font=FONT_TXT,
+                 anchor="middle")
 
-    def formula(lead, expr):
-        return [[{"text": lead}], [{"text": expr, "color": YELLOW, "bold": True, "size": 23}]]
+    def indicador(yy, h, texto, partes, dy=22):
+        text(s, xs[2] + 24, yy + 18, cols[2] - 44, 32, texto, size=20, font=FONT_TXT,
+             color=MUTED)
+        ecuacion(s, xs[2] + 24, yy + h / 2 + dy, partes, size=28, color=YELLOW,
+                 res_color=YELLOW)
 
-    section("Variable independiente")
-    h = 160
-    row_bg(y, h, 0)
-    cell(0, y, h, "Modelo de Procesamiento de Lenguaje Natural aplicado a la correspondencia "
-         "de productos", bold=True)
-    cell(1, y, h, "Arquitectura algorítmica.")
-    cell(2, y, h, "Modelo de correspondencia basado en NLP.")
-    cell(3, y, h, bullets(["Nivel de similitud calculado", "Capacidad de generalización",
-                           "Tolerancia y procesamiento de ruido textual."]), size=21)
+    def fondo(yy, h, k):
+        rect(s, x0, yy, tw, h, fill=PANEL if k % 2 == 0 else PANEL_2)
+
+    # VI
+    h = 176
+    fondo(y, h, 0)
+    variable(y, h, "Variable independiente",
+             "Modelo de Procesamiento de Lenguaje Natural aplicado a la correspondencia de "
+             "productos", YELLOW)
+    celda(1, y, h, "Arquitectura algorítmica.")
+    celda(2, y, h, "Modelo de correspondencia basado en NLP.")
+    vinetas(3, y, h, ["Nivel de similitud calculado", "Capacidad de generalización",
+                      "Tolerancia y procesamiento de ruido textual."])
     y += h
-    section("Variable dependiente")
-    h1 = h2 = 160
-    row_bg(y, h1 + h2, 1)
-    rect(s, xs[1], y + h1, tw - cols[0], 1, fill=LINE, fill_alpha=0.3)
-    cell(0, y, h1 + h2, "Consistencia de la calidad del matching.", bold=True)
-    cell(1, y, h1, "Rendimiento predictivo algorítmico.")
-    cell(2, y, h1, formula("Porcentaje de exactitud en la clasificación binaria:",
-                           "Accuracy = (TP + TN) / Total × 100"), size=21)
-    cell(3, y, h1, bullets(["Precisión", "Recall", "F1-score"]), size=21)
-    cell(1, y + h1, h2, "Estabilidad operativa frente al factor humano.")
-    cell(2, y + h1, h2, formula("Tasa de error de validación:",
-                                "Error = (FP + FN) / Total × 100"), size=21)
-    cell(3, y + h1, h2, bullets(["Tasa de error por ambigüedad léxica.",
-                                 "Nivel de error por fatiga operativa.",
-                                 "Concordancia inter-evaluador."]), size=21)
+    rect(s, x0, y, tw, 1.5, fill=BLUE_LIGHT, fill_alpha=0.45)
+    # VD1 (dos filas)
+    h1 = h2 = 176
+    fondo(y, h1 + h2, 1)
+    variable(y, h1 + h2, "Variable dependiente", "Consistencia de la calidad del matching.",
+             BLUE_LIGHT)
+    rect(s, xs[1], y + h1, tw - cols[0], 1, fill=LINE, fill_alpha=0.35)
+    celda(1, y, h1, "Rendimiento predictivo algorítmico.")
+    indicador(y, h1, "Porcentaje de exactitud en la clasificación binaria:",
+              [("var", "Accuracy"), "=", ("frac", ["TP + TN"], ["Total"]), "× 100"])
+    vinetas(3, y, h1, ["Precisión", "Recall", "F1-score"])
+    celda(1, y + h1, h2, "Estabilidad operativa frente al factor humano.")
+    indicador(y + h1, h2, "Tasa de error de validación:",
+              [("var", "Error"), "=", ("frac", ["FP + FN"], ["Total"]), "× 100"])
+    vinetas(3, y + h1, h2, ["Tasa de error por ambigüedad léxica.",
+                            "Nivel de error por fatiga operativa.",
+                            "Concordancia inter-evaluador."])
     y += h1 + h2
-    h = 160
-    row_bg(y, h, 0)
-    cell(0, y, h, "Tiempo de validación", bold=True)
-    cell(1, y, h, "Eficiencia temporal")
-    cell(2, y, h, formula("Tiempo de procesamiento operativo en segundos:",
-                          "t̄ = (Σᵢ₌₁ⁿ tᵢ) / n"), size=21)
-    cell(3, y, h, bullets(["Tiempo de latencia algorítmica del modelo.",
-                           "Tiempo promedio de validación manual.",
-                           "Mejora porcentual de reducción de tiempo."]), size=21)
+    rect(s, x0, y, tw, 1.5, fill=BLUE_LIGHT, fill_alpha=0.45)
+    # VD2
+    h = 198
+    fondo(y, h, 0)
+    variable(y, h, "Variable dependiente", "Tiempo de validación", BLUE_LIGHT)
+    celda(1, y, h, "Eficiencia temporal")
+    indicador(y, h, "Tiempo de procesamiento operativo en segundos:",
+              [("bar", "t"), "=", ("frac", [("sum", "i=1", "n"), ("sub", "t", "i")], ["n"])],
+              dy=34)
+    vinetas(3, y, h, ["Tiempo de latencia algorítmica del modelo.",
+                      "Tiempo promedio de validación manual.",
+                      "Mejora porcentual de reducción de tiempo."])
     y += h
-    # divisores de columna solo dentro de las filas de datos
     for xv in xs[1:-1]:
-        rect(s, xv, y0, 1, hh, fill=PAPER, fill_alpha=0.25)
-        for (fy, fh) in filas:
-            rect(s, xv, fy, 1, fh, fill=LINE, fill_alpha=0.35)
-    rect(s, x0, y0, tw, y - y0, line=BLUE_LIGHT, line_w=1.5, line_alpha=0.5)
-    text(s, x0, y + 12, 1000, 30, "Tabla 2: Matriz de operacionalización de variables",
+        rect(s, xv, y0 + hh, 1, y - y0 - hh, fill=LINE, fill_alpha=0.3)
+    rect(s, x0, y0, tw, y - y0, line=BLUE_LIGHT, line_w=1.5, line_alpha=0.55)
+    corners(s, x0 - 10, y0 - 10, tw + 20, y - y0 + 20, size=40, width=3)
+    text(s, x0, y + 18, 1000, 30, "Tabla 2: Matriz de operacionalización de variables",
          size=20, bold=True, color=YELLOW, font=FONT_TXT)
-    text(s, x0 + tw - 600, y + 12, 600, 30, "Fuente: Elaboración propia, 2026", size=20,
+    text(s, x0 + tw - 600, y + 18, 600, 30, "Fuente: Elaboración propia, 2026", size=20,
          color=MUTED, italic=True, align="right", font=FONT_TXT)
     notes(s, nota)
 

@@ -1,3 +1,4 @@
 build/img/
 build/ext/deco/
 __pycache__/
+build/preview/
