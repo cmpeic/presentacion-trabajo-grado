@@ -1,0 +1,7 @@
+.npm-cache/
+.hyperframes/
+.thumbnails/
+node_modules/
+renders/
+debug.log
+*.bak

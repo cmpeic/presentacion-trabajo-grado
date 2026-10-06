@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="290" viewBox="0 0 980 290" font-family="Segoe UI, Arial, sans-serif">
+<rect width="980" height="290" fill="#ffffff"/>
+<text x="24" y="38" font-size="21" font-weight="700" fill="#1a1a2e">F1 de clasificacion de pares — los mismos 161 pares de test</text>
+<text x="24" y="62" font-size="13" fill="#667085">96 positivos · 65 negativos dificiles · umbrales congelados con validation</text>
+<line x1="330" y1="84" x2="330" y2="216" stroke="#e5e7eb" stroke-width="1"/>
+<text x="330" y="234" font-size="11" fill="#98a2b3" text-anchor="middle">0%</text>
+<line x1="460" y1="84" x2="460" y2="216" stroke="#e5e7eb" stroke-width="1"/>
+<text x="460" y="234" font-size="11" fill="#98a2b3" text-anchor="middle">25%</text>
+<line x1="590" y1="84" x2="590" y2="216" stroke="#e5e7eb" stroke-width="1"/>
+<text x="590" y="234" font-size="11" fill="#98a2b3" text-anchor="middle">50%</text>
+<line x1="720" y1="84" x2="720" y2="216" stroke="#e5e7eb" stroke-width="1"/>
+<text x="720" y="234" font-size="11" fill="#98a2b3" text-anchor="middle">75%</text>
+<line x1="850" y1="84" x2="850" y2="216" stroke="#e5e7eb" stroke-width="1"/>
+<text x="850" y="234" font-size="11" fill="#98a2b3" text-anchor="middle">100%</text>
+<text x="318" y="107" font-size="13.5" fill="#344054" text-anchor="end">TF-IDF (umbral 0,5238)</text>
+<rect x="330" y="92" width="374" height="24" rx="5" fill="#4c8dff"/>
+<text x="696" y="108.5" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="end">72,04%</text>
+<text x="318" y="151" font-size="13.5" fill="#344054" text-anchor="end">Embeddings (umbral 0,378)</text>
+<rect x="330" y="136" width="381" height="24" rx="5" fill="#9b6bdf"/>
+<text x="703" y="152.5" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="end">73,42%</text>
+<text x="318" y="195" font-size="13.5" fill="#344054" text-anchor="end">Transformer (umbral 0,998844)</text>
+<rect x="330" y="180" width="506" height="24" rx="5" fill="#2fb474"/>
+<text x="828" y="196.5" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="end">97,41%</text>
+<text x="24" y="272" font-size="12" fill="#667085" font-style="italic">Ojo: el F1 de M1 y M2 parece igual — sus matrices son opuestas (FPR 35,38% vs 83,08%). El F1 sin la matriz engana.</text>
+</svg>

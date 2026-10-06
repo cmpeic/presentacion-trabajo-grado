@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="466" viewBox="0 0 980 466" font-family="Segoe UI, Arial, sans-serif">
+<rect width="980" height="466" fill="#ffffff"/>
+<text x="24" y="38" font-size="21" font-weight="700" fill="#1a1a2e">Recall@1 por sistema — test congelado (147 consultas)</text>
+<text x="24" y="62" font-size="13" fill="#667085">Resultados del protocolo común · el techo representa el límite del conjunto de candidatos</text>
+<line x1="330" y1="84" x2="330" y2="392" stroke="#e5e7eb" stroke-width="1"/>
+<text x="330" y="410" font-size="11" fill="#98a2b3" text-anchor="middle">0%</text>
+<line x1="460" y1="84" x2="460" y2="392" stroke="#e5e7eb" stroke-width="1"/>
+<text x="460" y="410" font-size="11" fill="#98a2b3" text-anchor="middle">25%</text>
+<line x1="590" y1="84" x2="590" y2="392" stroke="#e5e7eb" stroke-width="1"/>
+<text x="590" y="410" font-size="11" fill="#98a2b3" text-anchor="middle">50%</text>
+<line x1="720" y1="84" x2="720" y2="392" stroke="#e5e7eb" stroke-width="1"/>
+<text x="720" y="410" font-size="11" fill="#98a2b3" text-anchor="middle">75%</text>
+<line x1="850" y1="84" x2="850" y2="392" stroke="#e5e7eb" stroke-width="1"/>
+<text x="850" y="410" font-size="11" fill="#98a2b3" text-anchor="middle">100%</text>
+<text x="318" y="107" font-size="13.5" fill="#344054" text-anchor="end">Embeddings (M2)</text>
+<rect x="330" y="92" width="45" height="24" rx="5" fill="#e5534b"/>
+<text x="383" y="108.5" font-size="12.5" font-weight="700" fill="#344054">8,84%</text>
+<text x="318" y="151" font-size="13.5" fill="#344054" text-anchor="end">Transformer re-ranker solo</text>
+<rect x="330" y="136" width="428" height="24" rx="5" fill="#f2a33c"/>
+<text x="750" y="152.5" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="end">82,31%</text>
+<text x="318" y="195" font-size="13.5" fill="#344054" text-anchor="end">Baseline exacto</text>
+<rect x="330" y="180" width="442" height="24" rx="5" fill="#98a2b3"/>
+<text x="764" y="196.5" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="end">85,03%</text>
+<text x="318" y="239" font-size="13.5" fill="#344054" text-anchor="end">TF-IDF char_4_6_enriched</text>
+<rect x="330" y="224" width="445" height="24" rx="5" fill="#4c8dff"/>
+<text x="767" y="240.5" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="end">85,71%</text>
+<text x="318" y="283" font-size="13.5" fill="#344054" text-anchor="end">Cascada exacto - TF-IDF</text>
+<rect x="330" y="268" width="449" height="24" rx="5" fill="#4c8dff"/>
+<text x="771" y="284.5" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="end">86,39%</text>
+<text x="318" y="327" font-size="13.5" fill="#344054" text-anchor="end">Cascada exacto - transformer (mejor)</text>
+<rect x="330" y="312" width="452" height="24" rx="5" fill="#2fb474"/>
+<text x="774" y="328.5" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="end">87,07%</text>
+<text x="318" y="371" font-size="13.5" fill="#344054" text-anchor="end">Techo oracle de la union</text>
+<rect x="330" y="356" width="477" height="24" rx="5" fill="#f7c948"/>
+<text x="799" y="372.5" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="end">91,84%</text>
+<text x="24" y="448" font-size="12" fill="#667085" font-style="italic">McNemar entre las dos cascadas: p = 1,0 — el mejor resultado se reporta como puntual, no como superioridad</text>
+</svg>

@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presentar — Trabajo de grado</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg: #07172d;
+        --surface: #0d2748;
+        --paper: #f3f7fc;
+        --blue: #0b5ea8;
+        --yellow: #ffd21f;
+        --line: #6d8fb2;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: #000;
+        color: var(--paper);
+        font-family: "Bahnschrift", "Segoe UI", sans-serif;
+        user-select: none;
+      }
+
+      body.oculto { cursor: none; }
+
+      #escenario {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+      }
+
+      #lienzo {
+        width: 1920px;
+        height: 1080px;
+        border: 0;
+        transform-origin: center center;
+        background: var(--bg);
+      }
+
+      /* Barra de controles compacta, sintetizada y discreta */
+      #barra {
+        position: fixed;
+        left: 50%;
+        bottom: 18px;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: min(920px, 92vw);
+        height: 40px;
+        padding: 4px 14px;
+        transform: translateX(-50%);
+        border: 1px solid rgba(109, 143, 178, 0.45);
+        border-radius: 20px;
+        background: rgba(7, 23, 45, 0.88);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(12px);
+        transition: opacity 0.25s ease, transform 0.25s ease;
+      }
+
+      body.oculto #barra {
+        opacity: 0;
+        transform: translateX(-50%) translateY(14px);
+        pointer-events: none;
+      }
+
+      button {
+        height: 28px;
+        min-width: 28px;
+        padding: 0 8px;
+        border: 1px solid rgba(109, 143, 178, 0.5);
+        border-radius: 14px;
+        background: rgba(13, 39, 72, 0.85);
+        color: var(--paper);
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s ease;
+      }
+
+      button:hover {
+        border-color: var(--yellow);
+        color: var(--yellow);
+        background: rgba(11, 94, 168, 0.4);
+      }
+
+      #btnModo {
+        min-width: auto;
+        padding: 0 10px;
+        font-size: 11px;
+        letter-spacing: 0.03em;
+        border-color: rgba(255, 210, 31, 0.6);
+        color: var(--yellow);
+        background: rgba(255, 210, 31, 0.12);
+        height: 24px;
+      }
+
+      #btnModo.modo-auto {
+        border-color: rgba(109, 143, 178, 0.45);
+        color: var(--line);
+        background: rgba(13, 39, 72, 0.8);
+      }
+
+      #pista {
+        position: relative;
+        flex: 1;
+        height: 5px;
+        background: rgba(13, 39, 72, 0.9);
+        border: 1px solid rgba(109, 143, 178, 0.4);
+        border-radius: 3px;
+        cursor: pointer;
+        overflow: hidden;
+        transition: height 0.15s ease;
+      }
+
+      #pista:hover {
+        height: 8px;
+      }
+
+      #avance {
+        position: absolute;
+        inset: 0;
+        width: 0;
+        background: var(--yellow);
+        pointer-events: none;
+        transition: width 0.08s linear;
+      }
+
+      .hito {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 1.5px;
+        background: rgba(243, 247, 252, 0.35);
+        pointer-events: none;
+      }
+
+      #infoLamina {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        max-width: 220px;
+        overflow: hidden;
+        white-space: nowrap;
+      }
+
+      #contadorLamina {
+        font-size: 12px;
+        color: var(--yellow);
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+
+      #nombreLamina {
+        font-size: 11px;
+        color: var(--paper);
+        text-overflow: ellipsis;
+        overflow: hidden;
+        opacity: 0.85;
+      }
+
+      #reloj {
+        font-size: 11.5px;
+        color: var(--line);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+
+      #reloj b { color: var(--paper); font-weight: 700; }
+
+      /* Selector desplegable compacto de capítulos */
+      #selectCapitulo {
+        height: 24px;
+        max-width: 130px;
+        padding: 0 6px;
+        border: 1px solid rgba(109, 143, 178, 0.5);
+        border-radius: 12px;
+        background: #0d2748;
+        color: var(--paper);
+        font-family: inherit;
+        font-size: 11px;
+        outline: none;
+        cursor: pointer;
+      }
+
+      #selectCapitulo:hover {
+        border-color: var(--yellow);
+        color: var(--yellow);
+      }
+
+      #ayuda {
+        position: fixed;
+        top: 14px;
+        left: 50%;
+        z-index: 100;
+        padding: 5px 14px;
+        transform: translateX(-50%);
+        border: 1px solid rgba(109, 143, 178, 0.4);
+        border-radius: 14px;
+        background: rgba(7, 23, 45, 0.85);
+        color: var(--line);
+        font-size: 11.5px;
+        letter-spacing: 0.02em;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        transition: opacity 0.25s ease;
+        pointer-events: none;
+      }
+
+      body.oculto #ayuda { opacity: 0; }
+
+      kbd {
+        padding: 1px 5px;
+        border: 1px solid rgba(109, 143, 178, 0.6);
+        border-radius: 3px;
+        background: rgba(13, 39, 72, 0.85);
+        color: var(--yellow);
+        font-family: inherit;
+        font-size: 10.5px;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="escenario">
+      <iframe id="lienzo" src="index.html" title="Composición"></iframe>
+    </div>
+
+    <p id="ayuda">
+      <kbd>Enter</kbd> o <kbd>Clic</kbd> avanzar · <kbd>←</kbd> retroceder · <kbd>M</kbd> modo · <kbd>F</kbd> pantalla completa
+    </p>
+
+    <div id="barra">
+      <button id="btnAnterior" title="Anterior (← o Backspace)">◀</button>
+      <button id="btnPlay" title="Reproducir / pausar automático">▶</button>
+      <button id="btnSiguiente" title="Siguiente (Enter o Clic)">▶▶</button>
+      <button id="btnModo" title="Alternar entre modo manual y automático (M)">● Manual</button>
+      <div id="pista"><div id="avance"></div></div>
+      <div id="infoLamina">
+        <span id="contadorLamina"><b id="txtNumero">1</b>/90</span>
+        <span id="nombreLamina">Carátula oficial</span>
+      </div>
+      <span id="reloj"><b>0:00</b> / 23:25</span>
+      <select id="selectCapitulo" title="Saltar a capítulo"></select>
+      <button id="btnPantalla" title="Pantalla completa (F)">⛶</button>
+    </div>
+
+    <script>
+      const PASOS = [
+  {
+    "cap": "Carátula",
+    "nombre": "Carátula oficial",
+    "t": 0,
+    "rest": 3.6
+  },
+  {
+    "cap": "Introducción",
+    "nombre": "01 · El ecosistema de comercios",
+    "t": 16.9,
+    "rest": 21
+  },
+  {
+    "cap": "Introducción",
+    "nombre": "02 · El volumen de datos",
+    "t": 29,
+    "rest": 31
+  },
+  {
+    "cap": "Introducción",
+    "nombre": "03 · El enfoque de PLN",
+    "t": 39,
+    "rest": 41
+  },
+  {
+    "cap": "Introducción",
+    "nombre": "04 · El operador y el problema",
+    "t": 49,
+    "rest": 51
+  },
+  {
+    "cap": "Antecedentes",
+    "nombre": "Mosaico de antecedentes",
+    "t": 59,
+    "rest": 61.5
+  },
+  {
+    "cap": "Antecedentes",
+    "nombre": "01 · La empresa y los comercios",
+    "t": 65,
+    "rest": 67
+  },
+  {
+    "cap": "Antecedentes",
+    "nombre": "02 · La extracción automática",
+    "t": 75,
+    "rest": 77
+  },
+  {
+    "cap": "Antecedentes",
+    "nombre": "03 · La comparación manual",
+    "t": 85,
+    "rest": 87
+  },
+  {
+    "cap": "Antecedentes",
+    "nombre": "04 · El reparto del trabajo",
+    "t": 95,
+    "rest": 97
+  },
+  {
+    "cap": "Antecedentes",
+    "nombre": "05 · Los cuatro estados",
+    "t": 105,
+    "rest": 107
+  },
+  {
+    "cap": "Antecedentes",
+    "nombre": "06 · El control de calidad",
+    "t": 115,
+    "rest": 117
+  },
+  {
+    "cap": "Problema",
+    "nombre": "Tablero causa–efecto",
+    "t": 125,
+    "rest": 127.5
+  },
+  {
+    "cap": "Problema",
+    "nombre": "Causa y efecto 01 · Criterio no formalizado",
+    "t": 130,
+    "rest": 132
+  },
+  {
+    "cap": "Problema",
+    "nombre": "Causa y efecto 02 · Volumen creciente",
+    "t": 140,
+    "rest": 142
+  },
+  {
+    "cap": "Problema",
+    "nombre": "Causa y efecto 03 · Inspección visual",
+    "t": 150,
+    "rest": 152
+  },
+  {
+    "cap": "Problema",
+    "nombre": "Causa y efecto 04 · Ausencia de trazabilidad",
+    "t": 160,
+    "rest": 162
+  },
+  {
+    "cap": "Formulación",
+    "nombre": "Formulación del problema",
+    "t": 170,
+    "rest": 173
+  },
+  {
+    "cap": "Objetivo",
+    "nombre": "Objetivo general",
+    "t": 186,
+    "rest": 189
+  },
+  {
+    "cap": "Hipótesis",
+    "nombre": "Hipótesis de investigación",
+    "t": 202,
+    "rest": 205
+  },
+  {
+    "cap": "Variables",
+    "nombre": "1.5.2 Identificación de las variables",
+    "t": 208,
+    "rest": 210.5
+  },
+  {
+    "cap": "Matriz",
+    "nombre": "Tabla 2 · Matriz de operacionalización",
+    "t": 213.6,
+    "rest": 215.8
+  },
+  {
+    "cap": "Marco teórico",
+    "nombre": "01 · Metodologías de desarrollo",
+    "t": 218,
+    "rest": 219.8
+  },
+  {
+    "cap": "Marco teórico",
+    "nombre": "02 · Notación de modelado de procesos",
+    "t": 221.8,
+    "rest": 222.8
+  },
+  {
+    "cap": "Marco teórico",
+    "nombre": "03 · Fundamentos computacionales",
+    "t": 224.8,
+    "rest": 225.8
+  },
+  {
+    "cap": "Marco teórico",
+    "nombre": "04 · Minería de texto y PLN",
+    "t": 227.8,
+    "rest": 228.8
+  },
+  {
+    "cap": "Marco teórico",
+    "nombre": "05 · Modelos de representación de texto",
+    "t": 230.8,
+    "rest": 231.8
+  },
+  {
+    "cap": "Marco teórico",
+    "nombre": "06 · Correspondencia de entidades",
+    "t": 233.8,
+    "rest": 234.8
+  },
+  {
+    "cap": "Marco teórico",
+    "nombre": "07 · Modelos de clasificación",
+    "t": 236.8,
+    "rest": 237.8
+  },
+  {
+    "cap": "Marco teórico",
+    "nombre": "08 · Métricas de similitud",
+    "t": 239.8,
+    "rest": 240.8
+  },
+  {
+    "cap": "Marco teórico",
+    "nombre": "09 · Evaluación de modelos",
+    "t": 242.8,
+    "rest": 243.8
+  },
+  {
+    "cap": "Marco teórico",
+    "nombre": "10 · Medición de eficiencia",
+    "t": 245.8,
+    "rest": 246.8
+  },
+  {
+    "cap": "Marco teórico",
+    "nombre": "11 · Sistemas de apoyo a la decisión",
+    "t": 248.8,
+    "rest": 249.8
+  },
+  {
+    "cap": "Marco teórico",
+    "nombre": "12 · Desarrollo web",
+    "t": 251.8,
+    "rest": 252.8
+  },
+  {
+    "cap": "OE1 · Proceso actual",
+    "nombre": "Lámina 01 · Escala de valoración de los criterios",
+    "t": 254.4,
+    "rest": 257.8
+  },
+  {
+    "cap": "OE1 · Proceso actual",
+    "nombre": "Lámina 02 · Metodologías de ciencia de datos",
+    "t": 271.4,
+    "rest": 273.8
+  },
+  {
+    "cap": "OE1 · Proceso actual",
+    "nombre": "Lámina 03 · Metodologías ágiles",
+    "t": 289.4,
+    "rest": 291.8
+  },
+  {
+    "cap": "OE1 · Proceso actual",
+    "nombre": "Lámina 04 · Actores del proceso",
+    "t": 307.4,
+    "rest": 309.8
+  },
+  {
+    "cap": "OE1 · Proceso actual",
+    "nombre": "Lámina 05 · Diagrama de flujo lógico",
+    "t": 325.4,
+    "rest": 327.8
+  },
+  {
+    "cap": "OE1 · Proceso actual",
+    "nombre": "Lámina 06 · BPMN del proceso actual",
+    "t": 341.4,
+    "rest": 343.8
+  },
+  {
+    "cap": "OE1 · Proceso actual",
+    "nombre": "Lámina 07 · BPMN del proceso propuesto",
+    "t": 357.4,
+    "rest": 359.8
+  },
+  {
+    "cap": "OE1 · Proceso actual",
+    "nombre": "Lámina 08 · Tiempos del proceso manual",
+    "t": 373.4,
+    "rest": 375.8
+  },
+  {
+    "cap": "OE2 · Identificar atributos",
+    "nombre": "Lámina 09 · Las 36 columnas por rol",
+    "t": 395.4,
+    "rest": 397.8
+  },
+  {
+    "cap": "OE2 · Identificar atributos",
+    "nombre": "Lámina 10 · Las señales que deciden",
+    "t": 413.4,
+    "rest": 415.8
+  },
+  {
+    "cap": "OE2 · Identificar atributos",
+    "nombre": "Lámina 11 · Atributos de calidad y una trampa",
+    "t": 433.4,
+    "rest": 435.8
+  },
+  {
+    "cap": "OE2 · Extraer productos",
+    "nombre": "Lámina 12 · Fuente Hidden",
+    "t": 449.4,
+    "rest": 451.8
+  },
+  {
+    "cap": "OE2 · Extraer productos",
+    "nombre": "Lámina 13 · Fuente NIC",
+    "t": 467.4,
+    "rest": 469.8
+  },
+  {
+    "cap": "OE2 · Extraer productos",
+    "nombre": "Lámina 14 · Catálogos oficiales",
+    "t": 491.4,
+    "rest": 493.8
+  },
+  {
+    "cap": "OE2 · Extraer productos",
+    "nombre": "Lámina 15 · Pares negativos",
+    "t": 513.4,
+    "rest": 515.8
+  },
+  {
+    "cap": "OE2 · Extraer productos",
+    "nombre": "Lámina 16 · Retailer de prueba",
+    "t": 531.4,
+    "rest": 533.8
+  },
+  {
+    "cap": "OE2 · Seleccionar campos",
+    "nombre": "Lámina 17 · La selección, formalizada",
+    "t": 551.4,
+    "rest": 553.8
+  },
+  {
+    "cap": "OE2 · Seleccionar campos",
+    "nombre": "Lámina 18 · Selección en las otras fuentes",
+    "t": 571.4,
+    "rest": 573.8
+  },
+  {
+    "cap": "OE2 · Seleccionar campos",
+    "nombre": "Lámina 19 · Selección en las otras fuentes",
+    "t": 591.4,
+    "rest": 593.8
+  },
+  {
+    "cap": "OE2 · Estructurar conjunto",
+    "nombre": "Lámina 20 · De volcado a unidad de análisis",
+    "t": 611.4,
+    "rest": 613.8
+  },
+  {
+    "cap": "OE2 · Estructurar conjunto",
+    "nombre": "Lámina 21 · Lo ambiguo se marca, no se borra",
+    "t": 631.4,
+    "rest": 633.8
+  },
+  {
+    "cap": "OE2 · Análisis exploratorio",
+    "nombre": "Lámina 22 · Los tres hallazgos que condicionan todo",
+    "t": 653.4,
+    "rest": 655.8
+  },
+  {
+    "cap": "OE2 · Análisis exploratorio",
+    "nombre": "Lámina 23 · Las siete fuentes a escala",
+    "t": 673.4,
+    "rest": 675.8
+  },
+  {
+    "cap": "OE3 · Pipeline textual",
+    "nombre": "Lámina 24 · Cinco fuentes, un solo pipeline",
+    "t": 691.4,
+    "rest": 693.8
+  },
+  {
+    "cap": "OE3 · Pipeline textual",
+    "nombre": "Lámina 25 · Un título real atravesando el pipeline",
+    "t": 711.4,
+    "rest": 713.8
+  },
+  {
+    "cap": "OE3 · Pipeline textual",
+    "nombre": "Lámina 26 · Qué se destruye, qué se conserva, qué se gana",
+    "t": 731.4,
+    "rest": 733.8
+  },
+  {
+    "cap": "OE4 · Modelos algorítmicos",
+    "nombre": "Lámina 27 · Qué puede mirar cada modelo",
+    "t": 751.4,
+    "rest": 753.8
+  },
+  {
+    "cap": "OE4 · Modelos algorítmicos",
+    "nombre": "Lámina 28 · Los dos cruces que nadie más tiene",
+    "t": 773.4,
+    "rest": 775.8
+  },
+  {
+    "cap": "OE4 · Modelos algorítmicos",
+    "nombre": "Lámina 29 · 23 configuraciones definidas antes de evaluar",
+    "t": 795.4,
+    "rest": 797.8
+  },
+  {
+    "cap": "OE4 · Modelos algorítmicos",
+    "nombre": "Lámina 30 · Siete medidas, tres funciones",
+    "t": 815.4,
+    "rest": 817.8
+  },
+  {
+    "cap": "OE4 · Modelos algorítmicos",
+    "nombre": "Lámina 31 · La cascada",
+    "t": 835.4,
+    "rest": 837.8
+  },
+  {
+    "cap": "OE4 · Modelos algorítmicos",
+    "nombre": "Lámina 32 · La escalera de decisión",
+    "t": 855.4,
+    "rest": 857.8
+  },
+  {
+    "cap": "OE4 · Modelos algorítmicos",
+    "nombre": "Lámina 33 · El recuperador en marcha",
+    "t": 877.4,
+    "rest": 879.8
+  },
+  {
+    "cap": "OE4 · Modelos algorítmicos",
+    "nombre": "Lámina 34 · El caso que no puede cerrar solo",
+    "t": 901.4,
+    "rest": 903.8
+  },
+  {
+    "cap": "OE4 · Modelos algorítmicos",
+    "nombre": "Lámina 35 · 17 configuraciones evaluadas",
+    "t": 925.4,
+    "rest": 927.8
+  },
+  {
+    "cap": "OE4 · Modelos algorítmicos",
+    "nombre": "Lámina 36 · Un mismo par por las cinco funciones",
+    "t": 949.4,
+    "rest": 951.8
+  },
+  {
+    "cap": "OE4 · Modelos algorítmicos",
+    "nombre": "Lámina 37 · El margen delata la duda",
+    "t": 973.4,
+    "rest": 975.8
+  },
+  {
+    "cap": "OE4 · Modelos algorítmicos",
+    "nombre": "Lámina 38 · Los cuatro falsos positivos",
+    "t": 995.4,
+    "rest": 997.8
+  },
+  {
+    "cap": "OE5 · Evaluación técnica",
+    "nombre": "Lámina 39 · Recall@1 sobre las 147 consultas",
+    "t": 1019.4,
+    "rest": 1021.8
+  },
+  {
+    "cap": "OE5 · Evaluación técnica",
+    "nombre": "Lámina 40 · El F1 sin la matriz engaña",
+    "t": 1041.4,
+    "rest": 1043.8
+  },
+  {
+    "cap": "OE5 · Evaluación técnica",
+    "nombre": "Lámina 41 · Los negativos difíciles",
+    "t": 1061.4,
+    "rest": 1063.8
+  },
+  {
+    "cap": "OE5 · Evaluación técnica",
+    "nombre": "Lámina 42 · La matriz de confusión",
+    "t": 1081.4,
+    "rest": 1083.8
+  },
+  {
+    "cap": "OE5 · Evaluación técnica",
+    "nombre": "Lámina 43 · El techo del recuperador",
+    "t": 1103.4,
+    "rest": 1105.8
+  },
+  {
+    "cap": "OE5 · Evidencia externa",
+    "nombre": "Lámina 44 · Gold externo, los tres modelos",
+    "t": 1125.4,
+    "rest": 1127.8
+  },
+  {
+    "cap": "OE5 · Evidencia externa",
+    "nombre": "Lámina 45 · Bélgica, dos publicaciones reales",
+    "t": 1147.4,
+    "rest": 1149.8
+  },
+  {
+    "cap": "OE5 · Evidencia externa",
+    "nombre": "Lámina 46 · Benchmark multipaís v7.5",
+    "t": 1171.4,
+    "rest": 1173.8
+  },
+  {
+    "cap": "OE5 · Evidencia externa",
+    "nombre": "Lámina 47 · Con código y sin código",
+    "t": 1195.4,
+    "rest": 1197.8
+  },
+  {
+    "cap": "OE6 · Contraste operativo",
+    "nombre": "Lámina 48 · Línea base manual observada",
+    "t": 1219.4,
+    "rest": 1221.8
+  },
+  {
+    "cap": "OE6 · Contraste operativo",
+    "nombre": "Lámina 49 · Latencia del sistema v7.5",
+    "t": 1239.4,
+    "rest": 1241.8
+  },
+  {
+    "cap": "OE6 · Contraste operativo",
+    "nombre": "Lámina 50 · Escenario operativo asistido",
+    "t": 1259.4,
+    "rest": 1261.8
+  },
+  {
+    "cap": "OE6 · Contraste operativo",
+    "nombre": "Lámina 51 · Consistencia durante la evaluación y el uso",
+    "t": 1279.4,
+    "rest": 1281.8
+  },
+  {
+    "cap": "Contrastación de la hipótesis",
+    "nombre": "Lámina 52 · Resultados de la consistencia de la calidad",
+    "t": 1299.4,
+    "rest": 1301.8
+  },
+  {
+    "cap": "Contrastación de la hipótesis",
+    "nombre": "Lámina 53 · Resultados del tiempo de validación",
+    "t": 1324.4,
+    "rest": 1326.8
+  },
+  {
+    "cap": "Contrastación de la hipótesis",
+    "nombre": "Lámina 54 · Matriz de contrastación de la hipótesis",
+    "t": 1349.4,
+    "rest": 1351.8
+  },
+  {
+    "cap": "Contrastación de la hipótesis",
+    "nombre": "Lámina 55 · Contrastación de la hipótesis",
+    "t": 1369.4,
+    "rest": 1371.8
+  },
+  {
+    "cap": "Cierre",
+    "nombre": "Lámina 56 · Gracias",
+    "t": 1389.4,
+    "rest": 1391.8
+  }
+];
+      const CAPITULOS = [
+  {
+    "nombre": "Carátula",
+    "pasoIndex": 0,
+    "t": 0
+  },
+  {
+    "nombre": "Introducción",
+    "pasoIndex": 1,
+    "t": 16.9
+  },
+  {
+    "nombre": "Antecedentes",
+    "pasoIndex": 5,
+    "t": 59
+  },
+  {
+    "nombre": "Problema",
+    "pasoIndex": 12,
+    "t": 125
+  },
+  {
+    "nombre": "Formulación",
+    "pasoIndex": 17,
+    "t": 170
+  },
+  {
+    "nombre": "Objetivo",
+    "pasoIndex": 18,
+    "t": 186
+  },
+  {
+    "nombre": "Hipótesis",
+    "pasoIndex": 19,
+    "t": 202
+  },
+  {
+    "nombre": "Variables",
+    "pasoIndex": 20,
+    "t": 208
+  },
+  {
+    "nombre": "Matriz",
+    "pasoIndex": 21,
+    "t": 213.6
+  },
+  {
+    "nombre": "Marco teórico",
+    "pasoIndex": 22,
+    "t": 218
+  },
+  {
+    "nombre": "OE1 · Proceso actual",
+    "pasoIndex": 34,
+    "t": 254.4
+  },
+  {
+    "nombre": "OE2 · Identificar atributos",
+    "pasoIndex": 42,
+    "t": 395.4
+  },
+  {
+    "nombre": "OE2 · Extraer productos",
+    "pasoIndex": 45,
+    "t": 449.4
+  },
+  {
+    "nombre": "OE2 · Seleccionar campos",
+    "pasoIndex": 50,
+    "t": 551.4
+  },
+  {
+    "nombre": "OE2 · Estructurar conjunto",
+    "pasoIndex": 53,
+    "t": 611.4
+  },
+  {
+    "nombre": "OE2 · Análisis exploratorio",
+    "pasoIndex": 55,
+    "t": 653.4
+  },
+  {
+    "nombre": "OE3 · Pipeline textual",
+    "pasoIndex": 57,
+    "t": 691.4
+  },
+  {
+    "nombre": "OE4 · Modelos algorítmicos",
+    "pasoIndex": 60,
+    "t": 751.4
+  },
+  {
+    "nombre": "OE5 · Evaluación técnica",
+    "pasoIndex": 72,
+    "t": 1019.4
+  },
+  {
+    "nombre": "OE5 · Evidencia externa",
+    "pasoIndex": 77,
+    "t": 1125.4
+  },
+  {
+    "nombre": "OE6 · Contraste operativo",
+    "pasoIndex": 81,
+    "t": 1219.4
+  },
+  {
+    "nombre": "Contrastación de la hipótesis",
+    "pasoIndex": 85,
+    "t": 1299.4
+  },
+  {
+    "nombre": "Cierre",
+    "pasoIndex": 89,
+    "t": 1389.4
+  }
+];
+
+      const lienzo = document.getElementById("lienzo");
+      const escenario = document.getElementById("escenario");
+      const barra = document.getElementById("barra");
+      const btnAnterior = document.getElementById("btnAnterior");
+      const btnPlay = document.getElementById("btnPlay");
+      const btnSiguiente = document.getElementById("btnSiguiente");
+      const btnModo = document.getElementById("btnModo");
+      const btnPantalla = document.getElementById("btnPantalla");
+      const pista = document.getElementById("pista");
+      const avance = document.getElementById("avance");
+      const reloj = document.getElementById("reloj");
+      const txtNumero = document.getElementById("txtNumero");
+      const nombreLamina = document.getElementById("nombreLamina");
+      const selectCapitulo = document.getElementById("selectCapitulo");
+
+      let tl = null;
+      let montado = false;
+      let pasoActual = 0;
+      let modoManual = true;
+      let animacionEnCurso = null;
+
+      function escalar() {
+        const factor = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+        lienzo.style.transform = "scale(" + factor + ")";
+      }
+
+      function formato(segundos) {
+        const s = Math.max(0, Math.floor(segundos));
+        return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+      }
+
+      function sincronizarPasoConTiempo(t) {
+        let indice = 0;
+        for (let i = PASOS.length - 1; i >= 0; i--) {
+          if (t >= PASOS[i].t - 0.2) {
+            indice = i;
+            break;
+          }
+        }
+        return indice;
+      }
+
+      function refrescarUI() {
+        if (!tl) return;
+        const t = tl.time();
+        const total = tl.duration() || 1405;
+        avance.style.width = ((t / total) * 100) + "%";
+        reloj.innerHTML = "<b>" + formato(t) + "</b> / " + formato(total);
+        btnPlay.textContent = tl.isActive() ? "❚❚" : "▶";
+
+        if (!modoManual) {
+          pasoActual = sincronizarPasoConTiempo(t);
+        }
+
+        const paso = PASOS[pasoActual] || PASOS[0];
+        txtNumero.textContent = String(pasoActual + 1);
+        nombreLamina.textContent = paso.nombre;
+
+        // Sincronizar selector de capítulos
+        const capActivoIdx = CAPITULOS.findIndex((c, idx) => {
+          const sig = CAPITULOS[idx + 1];
+          return pasoActual >= c.pasoIndex && (!sig || pasoActual < sig.pasoIndex);
+        });
+        if (capActivoIdx >= 0 && selectCapitulo.selectedIndex !== capActivoIdx) {
+          selectCapitulo.selectedIndex = capActivoIdx;
+        }
+      }
+
+      function conectar() {
+        if (montado) return;
+        const ventana = lienzo.contentWindow;
+        tl = ventana && ventana.__timelines && ventana.__timelines["trabajo-grado"];
+        if (!tl) {
+          setTimeout(conectar, 120);
+          return;
+        }
+        montado = true;
+        tl.pause(0);
+
+        // Crear hitos en la pista y opciones de capítulos
+        selectCapitulo.innerHTML = "";
+        CAPITULOS.forEach((cap, idx) => {
+          const hito = document.createElement("div");
+          hito.className = "hito";
+          hito.style.left = (cap.t / tl.duration()) * 100 + "%";
+          pista.appendChild(hito);
+
+          const opt = document.createElement("option");
+          opt.value = cap.pasoIndex;
+          opt.textContent = (idx + 1) + ". " + cap.nombre;
+          selectCapitulo.appendChild(opt);
+        });
+
+        selectCapitulo.addEventListener("change", (e) => {
+          const pasoIdx = Number(e.target.value);
+          irAPaso(pasoIdx, true);
+        });
+
+        // Nota: NO adjuntar docLienzo.addEventListener aquí porque index.html
+        // ya propaga los eventos directamente mediante manejarTecladoExterno,
+        // manejarClicExterno y manejarContextExterno sin duplicados.
+
+        irAPaso(0, false);
+        requestAnimationFrame(bucle);
+      }
+
+      function bucle() {
+        if (!modoManual && tl && tl.isActive()) {
+          refrescarUI();
+        }
+        requestAnimationFrame(bucle);
+      }
+
+      function irAPaso(indice, conAnimacion = true) {
+        if (!tl) return;
+        const nuevoIndice = Math.max(0, Math.min(indice, PASOS.length - 1));
+        const paso = PASOS[nuevoIndice];
+        pasoActual = nuevoIndice;
+
+        if (animacionEnCurso) {
+          animacionEnCurso.kill();
+          animacionEnCurso = null;
+        }
+
+        if (conAnimacion && modoManual) {
+          const tiempoInicio = paso.t;
+          const tiempoFin = paso.rest;
+          tl.pause(tiempoInicio);
+
+          const ventana = lienzo.contentWindow;
+          const gsapInst = (ventana && ventana.gsap) || window.gsap;
+          if (gsapInst && tiempoFin > tiempoInicio) {
+            const animObj = { t: tiempoInicio };
+            animacionEnCurso = gsapInst.to(animObj, {
+              t: tiempoFin,
+              duration: 0.5,
+              ease: "power2.out",
+              onUpdate: () => {
+                tl.time(animObj.t);
+                refrescarUI();
+              },
+              onComplete: () => {
+                tl.pause(tiempoFin);
+                animacionEnCurso = null;
+                refrescarUI();
+              }
+            });
+          } else {
+            tl.pause(tiempoFin);
+            refrescarUI();
+          }
+        } else {
+          tl.pause(paso.rest);
+          refrescarUI();
+        }
+      }
+
+      let ultimaAccionNavegacion = 0;
+      const COOLDOWN_NAVEGACION_MS = 250;
+
+      function avanzarPaso() {
+        if (!tl) return;
+        const ahora = Date.now();
+        if (ahora - ultimaAccionNavegacion < COOLDOWN_NAVEGACION_MS) return;
+        ultimaAccionNavegacion = ahora;
+
+        if (pasoActual < PASOS.length - 1) {
+          irAPaso(pasoActual + 1, true);
+        }
+      }
+
+      function retrocederPaso() {
+        if (!tl) return;
+        const ahora = Date.now();
+        if (ahora - ultimaAccionNavegacion < COOLDOWN_NAVEGACION_MS) return;
+        ultimaAccionNavegacion = ahora;
+
+        if (pasoActual > 0) {
+          irAPaso(pasoActual - 1, false);
+        }
+      }
+
+      function alternarModo() {
+        modoManual = !modoManual;
+        if (modoManual) {
+          btnModo.textContent = "● Manual";
+          btnModo.classList.remove("modo-auto");
+          if (animacionEnCurso) {
+            animacionEnCurso.kill();
+            animacionEnCurso = null;
+          }
+          if (tl) tl.pause(PASOS[pasoActual].rest);
+        } else {
+          btnModo.textContent = "● Auto";
+          btnModo.classList.add("modo-auto");
+          if (animacionEnCurso) {
+            animacionEnCurso.kill();
+            animacionEnCurso = null;
+          }
+          if (tl) tl.play();
+        }
+        refrescarUI();
+      }
+
+      function alternarPlay() {
+        if (!tl) return;
+        if (modoManual) {
+          alternarModo();
+        } else {
+          if (tl.isActive()) tl.pause();
+          else if (tl.time() >= tl.duration() - 0.1) tl.play(0);
+          else tl.play();
+          refrescarUI();
+        }
+      }
+
+      function irATiempo(t) {
+        if (!tl) return;
+        const destino = Math.min(Math.max(t, 0), tl.duration());
+        if (modoManual) {
+          const idx = sincronizarPasoConTiempo(destino);
+          irAPaso(idx, false);
+        } else {
+          if (tl.isActive()) tl.play(destino);
+          else tl.pause(destino);
+          refrescarUI();
+        }
+      }
+
+      function desplazar(delta) {
+        if (tl) irATiempo(tl.time() + delta);
+      }
+
+      window.manejarTecladoExterno = (e) => manejarTeclado(e);
+      window.manejarClicExterno = (e) => manejarClic(e);
+      window.manejarContextExterno = (e) => manejarContext(e);
+
+      function manejarTeclado(evento) {
+        despertar();
+        if (evento.repeat) {
+          evento.preventDefault();
+          return;
+        }
+
+        if (evento.target && (evento.target.id === "selectCapitulo" || evento.target.tagName === "SELECT" || evento.target.tagName === "INPUT")) {
+          return;
+        }
+
+        const code = evento.code;
+        const key = evento.key;
+
+        // Avanzar: Enter, Espacio (en manual), Flecha Derecha, Flecha Abajo, AvPág
+        if (code === "Enter" || code === "NumpadEnter" || code === "PageDown" || code === "ArrowDown") {
+          evento.preventDefault();
+          avanzarPaso();
+          return;
+        }
+
+        if (code === "Space") {
+          evento.preventDefault();
+          if (modoManual) avanzarPaso();
+          else alternarPlay();
+          return;
+        }
+
+        if (code === "ArrowRight") {
+          evento.preventDefault();
+          if (evento.shiftKey) desplazar(5);
+          else avanzarPaso();
+          return;
+        }
+
+        // Retroceder: Flecha Izquierda, Flecha Arriba, RePág, Backspace
+        if (code === "ArrowLeft" || code === "ArrowUp" || code === "Backspace" || code === "PageUp") {
+          evento.preventDefault();
+          if (evento.shiftKey) desplazar(-5);
+          else retrocederPaso();
+          return;
+        }
+
+        if (code === "KeyM") {
+          evento.preventDefault();
+          alternarModo();
+          return;
+        }
+
+        if (code === "Home") {
+          evento.preventDefault();
+          irAPaso(0, false);
+          return;
+        }
+
+        if (code === "End") {
+          evento.preventDefault();
+          irAPaso(PASOS.length - 1, false);
+          return;
+        }
+
+        if (key && key.toLowerCase() === "f") {
+          btnPantalla.click();
+          return;
+        }
+
+        const digito = Number(key);
+        if (digito >= 1 && digito <= 9 && digito <= CAPITULOS.length) {
+          irAPaso(CAPITULOS[digito - 1].pasoIndex, true);
+        }
+      }
+
+      function manejarClic(evento) {
+        if (evento.target && (evento.target.closest("#barra") || evento.target.closest("#ayuda"))) return;
+        if (evento.button === 0) {
+          avanzarPaso();
+        }
+      }
+
+      function manejarContext(evento) {
+        if (evento.target && (evento.target.closest("#barra") || evento.target.closest("#ayuda"))) return;
+        if (evento.preventDefault) evento.preventDefault();
+        retrocederPaso();
+      }
+
+      lienzo.addEventListener("load", conectar);
+      if (lienzo.contentWindow && lienzo.contentWindow.document.readyState === "complete") conectar();
+
+      btnAnterior.addEventListener("click", (e) => { e.stopPropagation(); retrocederPaso(); });
+      btnSiguiente.addEventListener("click", (e) => { e.stopPropagation(); avanzarPaso(); });
+      btnPlay.addEventListener("click", (e) => { e.stopPropagation(); alternarPlay(); });
+      btnModo.addEventListener("click", (e) => { e.stopPropagation(); alternarModo(); });
+      btnPantalla.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (document.fullscreenElement) document.exitFullscreen();
+        else document.documentElement.requestFullscreen();
+      });
+
+      escenario.addEventListener("click", manejarClic);
+      escenario.addEventListener("contextmenu", manejarContext);
+
+      pista.addEventListener("click", (evento) => {
+        evento.stopPropagation();
+        if (!tl) return;
+        const caja = pista.getBoundingClientRect();
+        const prop = (evento.clientX - caja.left) / caja.width;
+        irATiempo(prop * tl.duration());
+      });
+
+      window.addEventListener("keydown", manejarTeclado);
+
+      let temporizador;
+      function despertar() {
+        document.body.classList.remove("oculto");
+        clearTimeout(temporizador);
+        temporizador = setTimeout(() => document.body.classList.add("oculto"), 1800);
+      }
+      window.addEventListener("mousemove", despertar);
+      window.addEventListener("keydown", despertar);
+      despertar();
+
+      window.addEventListener("resize", escalar);
+      escalar();
+    </script>
+  </body>
+</html>
