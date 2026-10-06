@@ -78,15 +78,19 @@ def _style_fill(shape, fill: str | None, fill_alpha: float = 1.0) -> None:
             _set_alpha(sp_pr.find(qn("a:solidFill")), fill_alpha)
 
 
-def _style_line(shape, line: str | None, width: float = 1.0, alpha: float = 1.0) -> None:
+def _style_line(shape, line: str | None, width: float = 1.0, alpha: float = 1.0,
+                dash: str | None = None) -> None:
     if line is None:
         shape.line.fill.background()
     else:
         shape.line.color.rgb = rgb(line)
         shape.line.width = Pt(width * 0.75)
+        ln = shape._element.spPr.find(qn("a:ln"))
         if alpha < 1:
-            ln = shape._element.spPr.find(qn("a:ln"))
             _set_alpha(ln.find(qn("a:solidFill")), alpha)
+        if dash:
+            d = etree.SubElement(ln, qn("a:prstDash"))
+            d.set("val", dash)
 
 
 def _no_shadow(shape) -> None:
@@ -96,13 +100,14 @@ def _no_shadow(shape) -> None:
 
 
 def rect(slide, x, y, w, h, fill=None, line=None, line_w=1.0, fill_alpha=1.0,
-         line_alpha=1.0, radius: float | None = None, name: str | None = None):
+         line_alpha=1.0, radius: float | None = None, name: str | None = None,
+         dash: str | None = None):
     kind = MSO_SHAPE.ROUNDED_RECTANGLE if radius else MSO_SHAPE.RECTANGLE
     shp = slide.shapes.add_shape(kind, px(x), px(y), px(w), px(h))
     if radius:
         shp.adjustments[0] = min(0.5, radius / min(w, h))
     _style_fill(shp, fill, fill_alpha)
-    _style_line(shp, line, line_w, line_alpha)
+    _style_line(shp, line, line_w, line_alpha, dash)
     _no_shadow(shp)
     shp.text_frame.text = ""
     if name:
@@ -140,27 +145,39 @@ def line(slide, x1, y1, x2, y2, color="#6D8FB2", width=1.0, alpha=1.0, arrow=Fal
     return conn
 
 
-def corners(slide, x, y, w, h, size=34, color="#FFD21F", width=3.0, which="tl,tr,bl,br"):
-    """Esquineros en L (marcas de encuadre)."""
+def arrow_shape(slide, x, y, w, h, color="#FFD21F", alpha=1.0, name: str | None = None):
+    """Flecha de bloque rellena apuntando a la derecha."""
+    shp = slide.shapes.add_shape(MSO_SHAPE.RIGHT_ARROW, px(x), px(y), px(w), px(h))
+    _style_fill(shp, color, alpha)
+    _style_line(shp, None)
+    _no_shadow(shp)
+    if name:
+        shp.name = name
+    return shp
+
+
+def corners(slide, x, y, w, h, size=34, color="#FFD21F", width=3.0, which="tl,tr,bl,br",
+            alpha=1.0):
+    """Esquineros en L (marcas de encuadre) dibujados con rectangulos finos."""
     parts = set(which.split(","))
+    t = width
+    segs = []
     if "tl" in parts:
-        line(slide, x, y, x + size, y, color, width)
-        line(slide, x, y, x, y + size, color, width)
+        segs += [(x, y, size, t), (x, y, t, size)]
     if "tr" in parts:
-        line(slide, x + w - size, y, x + w, y, color, width)
-        line(slide, x + w, y, x + w, y + size, color, width)
+        segs += [(x + w - size, y, size, t), (x + w - t, y, t, size)]
     if "bl" in parts:
-        line(slide, x, y + h - size, x, y + h, color, width)
-        line(slide, x, y + h, x + size, y + h, color, width)
+        segs += [(x, y + h - size, t, size), (x, y + h - t, size, t)]
     if "br" in parts:
-        line(slide, x + w, y + h - size, x + w, y + h, color, width)
-        line(slide, x + w - size, y + h, x + w, y + h, color, width)
+        segs += [(x + w - t, y + h - size, t, size), (x + w - size, y + h - t, size, t)]
+    for (sx, sy, sw, sh) in segs:
+        rect(slide, sx, sy, sw, sh, fill=color, fill_alpha=alpha, name="Esquinero")
 
 
 def text(slide, x, y, w, h, content, size=28, color="#F3F7FC", bold=False,
-         font: str = FONT_BODY, align="left", anchor="top", line_spacing=1.15,
+         font: str = FONT_BODY, align="left", anchor="top", line_spacing=1.2,
          italic=False, spacing: float | None = None, name: str | None = None,
-         wrap=True):
+         wrap=True, alpha: float = 1.0):
     """Caja de texto. `content` puede ser str o lista de parrafos.
 
     Cada parrafo puede ser str o lista de runs; cada run es str o dict con
@@ -178,7 +195,8 @@ def text(slide, x, y, w, h, content, size=28, color="#F3F7FC", bold=False,
         p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
         p.alignment = {"left": PP_ALIGN.LEFT, "center": PP_ALIGN.CENTER,
                        "right": PP_ALIGN.RIGHT, "justify": PP_ALIGN.JUSTIFY}[align]
-        p.line_spacing = line_spacing
+        # Canva interpreta el interlineado PPTX multiplicado por 1,2
+        p.line_spacing = round(line_spacing / 1.2, 3)
         runs = para if isinstance(para, list) else [para]
         for run_spec in runs:
             spec = run_spec if isinstance(run_spec, dict) else {"text": run_spec}
@@ -191,25 +209,99 @@ def text(slide, x, y, w, h, content, size=28, color="#F3F7FC", bold=False,
             f.name = spec.get("font", font)
             f.color.rgb = rgb(spec.get("color", color))
             sp = spec.get("spacing", spacing)
+            rpr = r._r.get_or_add_rPr()
             if sp:
-                r._r.get_or_add_rPr().set("spc", str(int(sp * 100)))
+                rpr.set("spc", str(int(sp * 100)))
+            if spec.get("baseline"):
+                rpr.set("baseline", str(int(spec["baseline"] * 1000)))
+            a = spec.get("alpha", alpha)
+            if a is not None and a < 0.999:
+                _set_alpha(rpr.find(qn("a:solidFill")), max(0.0, a))
     if name:
         tb.name = name
     return tb
 
 
-def image(slide, path, x, y, w=None, h=None, name: str | None = None):
+_OPT_CACHE: dict[str, str] = {}
+OPT_DIR = None  # carpeta para copias optimizadas; None = usar originales
+
+
+def _optimized(path: str, max_side: int = 1100, trim: bool = False) -> str:
+    """Copia reducida y optimizada de imagenes pesadas (cache por ruta).
+
+    En PNG con transparencia limpia una franja del borde (algunos iconos traen
+    lineas semitransparentes en el canto) y, con trim=True, recorta el margen
+    transparente para que el dibujo llene su caja.
+    """
+    import hashlib
+    import os
+
+    if OPT_DIR is None:
+        return path
+    ck = (path, trim)
+    if ck in _OPT_CACHE:
+        return _OPT_CACHE[ck]
+    if os.path.getsize(path) < 350_000 and not trim:
+        _OPT_CACHE[ck] = path
+        return path
+    from PIL import Image as _Im
+
+    os.makedirs(OPT_DIR, exist_ok=True)
+    key = hashlib.sha1(f"{path}|{trim}".encode()).hexdigest()[:10]
+    out = os.path.join(OPT_DIR, f"{os.path.splitext(os.path.basename(path))[0]}_{key}.png")
+    if not os.path.exists(out):
+        im = _Im.open(path)
+        if im.mode == "RGBA":
+            import numpy as np
+
+            arr = np.array(im)
+            band = max(8, int(0.012 * max(im.size)))
+            arr[:band, :, 3] = 0
+            arr[-band:, :, 3] = 0
+            arr[:, :band, 3] = 0
+            arr[:, -band:, 3] = 0
+            im = _Im.fromarray(arr, "RGBA")
+            if trim:
+                ys, xs = np.where(arr[:, :, 3] > 12)
+                if len(xs):
+                    pad = int(0.02 * max(im.size))
+                    box = (max(0, xs.min() - pad), max(0, ys.min() - pad),
+                           min(im.width, xs.max() + pad), min(im.height, ys.max() + pad))
+                    im = im.crop(box)
+        w0, h0 = im.size
+        side = 760 if abs(w0 - h0) < 0.1 * max(w0, h0) else max_side
+        im.thumbnail((side, side), _Im.LANCZOS)
+        im.save(out, optimize=True)
+    _OPT_CACHE[ck] = out
+    return out
+
+
+def image(slide, path, x, y, w=None, h=None, name: str | None = None, alpha: float = 1.0,
+          crop: tuple | None = None, trim: bool = False):
+    path = _optimized(str(path), trim=trim)
     pic = slide.shapes.add_picture(path, px(x), px(y), px(w) if w else None, px(h) if h else None)
+    if crop:
+        pic.crop_left, pic.crop_top, pic.crop_right, pic.crop_bottom = crop
+    if alpha < 0.999:
+        blip = pic._element.find(".//" + qn("a:blip"))
+        amf = etree.SubElement(blip, qn("a:alphaModFix"))
+        amf.set("amt", str(int(alpha * 100000)))
     if name:
         pic.name = name
     return pic
 
 
-def image_fit(slide, path, x, y, w, h, name: str | None = None):
-    """Inserta la imagen completa (contain) centrada dentro de la caja."""
+def image_fit(slide, path, x, y, w, h, name: str | None = None, alpha: float = 1.0,
+              trim: bool = False):
+    """Inserta la imagen completa (contain) centrada dentro de la caja.
+
+    Con trim=True se descarta antes el margen transparente del PNG.
+    """
     from PIL import Image
 
-    iw, ih = Image.open(path).size
+    real = _optimized(str(path), trim=trim) if trim else str(path)
+    iw, ih = Image.open(real).size
     scale = min(w / iw, h / ih)
     dw, dh = iw * scale, ih * scale
-    return image(slide, path, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh, name=name)
+    return image(slide, path, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh, name=name, alpha=alpha,
+                 trim=trim)
