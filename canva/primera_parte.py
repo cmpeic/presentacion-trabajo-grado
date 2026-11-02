@@ -66,7 +66,64 @@ def _caption(slide, x, y, w, label):
 
 
 # ---------------------------------------------------------------- 1 caratula
+TITULO_TESIS = ("Modelo de Procesamiento de Lenguaje Natural en la validación de "
+                "correspondencia de productos del ecosistema Philips")
+AUTOR = "Est. Cañez Larico Pablo Enrique"
+TUTOR = "Tutor: Ing. Víctor Rodríguez Estévez"
+
+
+def red_neuronal(s, cx, cy, r):
+    """Circulo con la red neuronal y constelacion de nodos (portada y cierre).
+
+    Deja anotada la posicion para el GIF animado que se coloca encima en Canva."""
+    s._red = (cx, cy, r)
+    nodes = [(cx - 196, cy - 284), (cx + 14, cy - 360), (cx + 220, cy - 210), (cx + 244, cy + 130),
+             (cx - 228, cy - 10), (cx - 198, cy + 280), (cx + 64, cy + 338)]
+    for a, b in [(0, 4), (0, 1), (1, 2), (2, 3), (4, 5), (5, 6), (3, 6)]:
+        line(s, *nodes[a], *nodes[b], color=BLUE_LIGHT, width=1.5, alpha=0.45)
+    for (nx, ny) in nodes:
+        ellipse(s, nx, ny, 7, fill=BLUE_TEXT)
+    ellipse(s, cx, cy, r + 44, line="#0B5EA8", line_w=2, line_alpha=0.35)
+    ellipse(s, cx, cy, r, fill=SURFACE, line=BLUE_LIGHT, line_w=5, name="Circulo red")
+    image_fit(s, str(A / "introduccion/int_3.png"), cx - r * 0.66, cy - r * 0.66, r * 1.32,
+              r * 1.32, name="Red neuronal", trim=True)
+
+
 def caratula(prs, nota):
+    import pptx_kit
+    from componentes import wrap_lines
+    from theme import LOGO_AZUL, logo, pie, rotulo_central
+
+    if pptx_kit.TEMA != "claro":
+        return _caratula_oscura(prs, nota)
+    s = add_slide(prs)
+    logo(s, LOGO_EMI, 120, 44, 132, name="Logo EMI")
+    logo(s, LOGO_AZUL, 1800, 58, 104, align="right", name="Logo carrera")
+    rotulo_central(s, "TRABAJO DE GRADO", 110, size=34, spacing=6, pad=56, regla=2)
+    rect(s, 120, 224, 1680, 1.5, fill="#D6E1EE")
+    # titulo en mayusculas
+    tsize, tw = 50, 1060
+    lineas = wrap_lines(TITULO_TESIS.upper(), tsize, tw, FONT_HEAD, True)
+    th = len(lineas) * tsize * 1.2
+    ty = 300
+    rect(s, 150, ty + 6, 10, th - 12, fill=YELLOW, name="Acento titulo")
+    text(s, 194, ty, tw + 40, th, [[ln] for ln in lineas], size=tsize, bold=True,
+         font=FONT_HEAD, line_spacing=1.2, name="Titulo")
+    text(s, 194, ty + th + 34, 1060, 46, "Caso de estudio: área de Agilsoft SRL.", size=32,
+         color="#0B5EA8", bold=True, font=FONT_TXT, name="Caso de estudio")
+    red_neuronal(s, 1500, 560, 200)
+    # autor y tutor
+    rect(s, 120, 880, 1680, 1.5, fill="#D6E1EE")
+    text(s, 120, 904, 1100, 64, AUTOR.upper(), size=42, bold=True, font=FONT_HEAD,
+         anchor="middle", name="Autor")
+    text(s, 1180, 904, 620, 64, TUTOR, size=28, color=MUTED, align="right", anchor="middle",
+         font=FONT_TXT, name="Tutor")
+    pie(s)
+    notes(s, nota)
+    return s
+
+
+def _caratula_oscura(prs, nota):
     s = add_slide(prs, bg_image=FONDO)
     rect(s, MARGIN, 76, 404, 196, fill="#FFFFFF", radius=18, name="Tarjeta logo EMI")
     image_fit(s, str(LOGO_EMI), MARGIN + 18, 90, 368, 168, name="Logo EMI", trim=True)

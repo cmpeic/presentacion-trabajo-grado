@@ -30,6 +30,119 @@ def rgb(hex_color: str) -> RGBColor:
     return RGBColor.from_string(hex_color.lstrip("#").upper())
 
 
+# ------------------------------------------------------------------ tema claro
+# Las laminas se disenaron sobre fondo oscuro. Con TEMA = "claro" cada color se
+# traduce al emitirlo: los rellenos azul noche pasan a tintes claros, los colores
+# de acento se conservan y el color de cada texto se decide segun lo que tiene
+# detras (modelo de pintura por lamina), de modo que el blanco sobre azul sigue
+# siendo blanco y el blanco sobre una tarjeta clara pasa a tinta oscura.
+TEMA = "claro"
+PAGINA = "#FFFFFF"
+TINTA = "#0B1F3A"
+TINTA_2 = "#4E5F78"
+ORO_LINEA = "#E8B000"
+
+_RELLENOS = {
+    "#07172D": "#FFFFFF", "#0A1F3D": "#F4F7FB", "#0B2242": "#F4F7FB", "#0C2445": "#EBF1F8",
+    "#0D2748": "#F1F5FA", "#0F2C52": "#E6EEF8", "#12305E": "#E3ECF8", "#1A3F78": "#D6E4F6",
+    "#1B3A66": "#E1EAF5",
+}
+_LINEAS = {"#6D8FB2": "#C3D2E3", "#F3F7FC": "#C3D2E3", "#FFFFFF": "#C3D2E3"}
+_TEXTOS = {"#4F9BFF": "#1A5FCF", "#2F7BFF": "#1A5FCF", "#E0566B": "#C42F48",
+           "#3DBE8B": "#1F8A5E", "#9FB4CC": TINTA_2, "#6D8FB2": TINTA_2}
+
+
+def _c3(h: str):
+    h = h.lstrip("#")
+    return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+
+
+def _hex(c) -> str:
+    return "#%02X%02X%02X" % tuple(max(0, min(255, int(round(v)))) for v in c)
+
+
+def _lum(c) -> float:
+    def ch(v):
+        v /= 255
+        return v / 12.92 if v <= 0.03928 else ((v + 0.055) / 1.055) ** 2.4
+    r, g, b = c
+    return 0.2126 * ch(r) + 0.7152 * ch(g) + 0.0722 * ch(b)
+
+
+def _mezcla(a, b, t: float):
+    """t*a + (1-t)*b."""
+    return tuple(t * x + (1 - t) * y for x, y in zip(a, b))
+
+
+def color_relleno(c: str | None, w: float = 999, h: float = 999) -> str | None:
+    if TEMA != "claro" or c is None:
+        return c
+    c = c.upper()
+    if c in _RELLENOS:
+        return _RELLENOS[c]
+    if c == "#FFD21F" and min(w, h) <= 6:
+        return ORO_LINEA  # filetes y esquineros amarillos: dorado legible sobre blanco
+    c3 = _c3(c)
+    if _lum(c3) < 0.05:  # cualquier otro azul noche -> tinte claro del mismo tono
+        return _hex(_mezcla(c3, (255, 255, 255), 0.07))
+    return c
+
+
+def color_linea(c: str | None) -> str | None:
+    if TEMA != "claro" or c is None:
+        return c
+    c = c.upper()
+    if c in _LINEAS:
+        return _LINEAS[c]
+    if c == "#FFD21F":
+        return ORO_LINEA
+    if _lum(_c3(c)) < 0.05:
+        return "#C3D2E3"
+    return c
+
+
+def _registrar(slide, x, y, w, h, fill, alpha):
+    """Anota un relleno opaco o translucido en el modelo de pintura de la lamina."""
+    if TEMA != "claro" or fill is None or w <= 0 or h <= 0:
+        return
+    pint = getattr(slide, "_pintura", None)
+    if pint is None:
+        pint = slide._pintura = []
+    cx, cy = x + w / 2, y + h / 2
+    debajo = fondo_en(slide, cx, cy)
+    efectivo = _mezcla(_c3(fill), debajo, alpha) if alpha < 1 else _c3(fill)
+    pint.append((x, y, w, h, efectivo))
+
+
+def fondo_en(slide, x, y):
+    for (rx, ry, rw, rh, c) in reversed(getattr(slide, "_pintura", []) or []):
+        if rx <= x <= rx + rw and ry <= y <= ry + rh:
+            return c
+    return _c3(getattr(slide, "_fondo", PAGINA))
+
+
+def color_texto(slide, c: str, x, y, w, h, size, align="left", anchor="top") -> str:
+    if TEMA != "claro":
+        return c
+    sx = x + w / 2 if align == "center" else (x + w - 12 if align == "right" else x + 12)
+    sy = {"top": y + size * 0.6, "middle": y + h / 2, "bottom": y + h - size * 0.6}[anchor]
+    if _lum(fondo_en(slide, sx, sy)) < 0.36:  # detras hay un color oscuro o saturado
+        return c
+    c = c.upper()
+    if c in _TEXTOS:
+        return _TEXTOS[c]
+    c3 = _c3(c)
+    r, g, b = c3
+    if r > 200 and g > 150 and b < 120:  # amarillo de acento -> dorado legible
+        return "#9A6B00" if size < 34 else "#AD7A00"
+    L = _lum(c3)
+    if L > 0.5:
+        return TINTA
+    if L > 0.25:
+        return TINTA_2
+    return c
+
+
 def _set_alpha(color_parent, alpha: float) -> None:
     """Agrega <a:alpha> al srgbClr dentro de color_parent (fill o line)."""
     if alpha is None or alpha >= 1:
@@ -54,6 +167,12 @@ def new_presentation() -> Presentation:
 
 def add_slide(prs: Presentation, bg: str = "#07172D", bg_image: str | None = None):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
+    slide._num = len(prs.slides)
+    slide._pintura = []
+    slide._anim = []
+    if TEMA == "claro":
+        bg, bg_image = PAGINA, None  # todo el documento va sobre fondo blanco
+    slide._fondo = bg
     fill = slide.background.fill
     fill.solid()
     fill.fore_color.rgb = rgb(bg)
@@ -97,6 +216,11 @@ def _no_shadow(shape) -> None:
     sp_pr = shape._element.spPr
     if sp_pr.find(qn("a:effectLst")) is None:
         etree.SubElement(sp_pr, qn("a:effectLst"))
+    # el estilo por defecto de python-pptx apunta a la sombra del tema (effectRef 2);
+    # sobre fondo blanco se ve como un halo gris, asi que se anula desde el estilo
+    eref = shape._element.find(".//" + qn("a:effectRef"))
+    if eref is not None:
+        eref.set("idx", "0")
 
 
 def rect(slide, x, y, w, h, fill=None, line=None, line_w=1.0, fill_alpha=1.0,
@@ -106,8 +230,10 @@ def rect(slide, x, y, w, h, fill=None, line=None, line_w=1.0, fill_alpha=1.0,
     shp = slide.shapes.add_shape(kind, px(x), px(y), px(w), px(h))
     if radius:
         shp.adjustments[0] = min(0.5, radius / min(w, h))
+    fill = color_relleno(fill, w, h)
+    _registrar(slide, x, y, w, h, fill, fill_alpha)
     _style_fill(shp, fill, fill_alpha)
-    _style_line(shp, line, line_w, line_alpha, dash)
+    _style_line(shp, color_linea(line), line_w, line_alpha, dash)
     _no_shadow(shp)
     shp.text_frame.text = ""
     if name:
@@ -118,8 +244,11 @@ def rect(slide, x, y, w, h, fill=None, line=None, line_w=1.0, fill_alpha=1.0,
 def ellipse(slide, cx, cy, r, fill=None, line=None, line_w=1.0, fill_alpha=1.0,
             line_alpha=1.0, name: str | None = None):
     shp = slide.shapes.add_shape(MSO_SHAPE.OVAL, px(cx - r), px(cy - r), px(2 * r), px(2 * r))
+    fill = color_relleno(fill, 2 * r, 2 * r)
+    if r > 30:  # solo los circulos grandes cuentan como fondo de un texto
+        _registrar(slide, cx - r * 0.7, cy - r * 0.7, r * 1.4, r * 1.4, fill, fill_alpha)
     _style_fill(shp, fill, fill_alpha)
-    _style_line(shp, line, line_w, line_alpha)
+    _style_line(shp, color_linea(line), line_w, line_alpha)
     _no_shadow(shp)
     if name:
         shp.name = name
@@ -129,7 +258,7 @@ def ellipse(slide, cx, cy, r, fill=None, line=None, line_w=1.0, fill_alpha=1.0,
 def line(slide, x1, y1, x2, y2, color="#6D8FB2", width=1.0, alpha=1.0, arrow=False,
          dash: str | None = None):
     conn = slide.shapes.add_connector(MSO_CONNECTOR.STRAIGHT, px(x1), px(y1), px(x2), px(y2))
-    conn.line.color.rgb = rgb(color)
+    conn.line.color.rgb = rgb(color_linea(color))
     conn.line.width = Pt(width * 0.75)
     ln = conn._element.spPr.find(qn("a:ln"))
     if alpha < 1:
@@ -148,7 +277,7 @@ def line(slide, x1, y1, x2, y2, color="#6D8FB2", width=1.0, alpha=1.0, arrow=Fal
 def arrow_shape(slide, x, y, w, h, color="#FFD21F", alpha=1.0, name: str | None = None):
     """Flecha de bloque rellena apuntando a la derecha."""
     shp = slide.shapes.add_shape(MSO_SHAPE.RIGHT_ARROW, px(x), px(y), px(w), px(h))
-    _style_fill(shp, color, alpha)
+    _style_fill(shp, color_relleno(color, 99, 99), alpha)
     _style_line(shp, None)
     _no_shadow(shp)
     if name:
@@ -160,7 +289,7 @@ def triangle(slide, x, y, w, h, color="#FFD21F", rotation=0, alpha=1.0, name=Non
     """Triangulo isosceles relleno; rotation=90 apunta a la derecha, 180 hacia abajo."""
     shp = slide.shapes.add_shape(MSO_SHAPE.ISOSCELES_TRIANGLE, px(x), px(y), px(w), px(h))
     shp.rotation = rotation
-    _style_fill(shp, color, alpha)
+    _style_fill(shp, color_relleno(color, 99, 99), alpha)
     _style_line(shp, None)
     _no_shadow(shp)
     if name:
@@ -219,7 +348,8 @@ def text(slide, x, y, w, h, content, size=28, color="#F3F7FC", bold=False,
             f.bold = spec.get("bold", bold)
             f.italic = spec.get("italic", italic)
             f.name = spec.get("font", font)
-            f.color.rgb = rgb(spec.get("color", color))
+            f.color.rgb = rgb(color_texto(slide, spec.get("color", color), x, y, w, h,
+                                          spec.get("size", size), align, anchor))
             sp = spec.get("spacing", spacing)
             rpr = r._r.get_or_add_rPr()
             if sp:
@@ -317,3 +447,108 @@ def image_fit(slide, path, x, y, w, h, name: str | None = None, alpha: float = 1
     dw, dh = iw * scale, ih * scale
     return image(slide, path, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh, name=name, alpha=alpha,
                  trim=trim)
+
+
+# ------------------------------------------------------------------ animaciones
+# Animaciones de entrada nativas de PowerPoint (aparecen solas al mostrar la
+# lamina, escalonadas). Se escriben al final con escribir_animaciones(prs).
+_NS_P = 'xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"'
+MAX_ANIM = 14  # por lamina: lo justo para que se note el movimiento sin demorar
+
+
+def animar(slide, shape, kind: str = "fade", delay_ms: int | None = None, dur_ms: int = 600):
+    """Programa una animacion de entrada para `shape` (fade, wipe o zoom)."""
+    lista = getattr(slide, "_anim", None)
+    if lista is None:
+        lista = slide._anim = []
+    if len(lista) >= MAX_ANIM:
+        return
+    if delay_ms is None:
+        delay_ms = 150 + 110 * len(lista)
+    lista.append((shape.shape_id, kind, int(delay_ms), int(dur_ms)))
+
+
+def _efecto(i, spid, kind, delay, dur):
+    tgt = f'<p:tgtEl><p:spTgt spid="{spid}"/></p:tgtEl>'
+    vis = (f'<p:set><p:cBhvr><p:cTn id="{i + 1}" dur="1" fill="hold"><p:stCondLst>'
+           f'<p:cond delay="0"/></p:stCondLst></p:cTn>{tgt}<p:attrNameLst>'
+           f'<p:attrName>style.visibility</p:attrName></p:attrNameLst></p:cBhvr><p:to>'
+           f'<p:strVal val="visible"/></p:to></p:set>')
+    if kind == "wipe":
+        pid, sub, n = 22, 8, 2
+        body = (f'<p:animEffect transition="in" filter="wipe(left)"><p:cBhvr>'
+                f'<p:cTn id="{i + 2}" dur="{dur}"/>{tgt}</p:cBhvr></p:animEffect>')
+    elif kind == "zoom":
+        pid, sub, n = 53, 16, 4
+        anims = ""
+        for k, attr in enumerate(("ppt_w", "ppt_h")):
+            anims += (f'<p:anim calcmode="lin" valueType="num"><p:cBhvr>'
+                      f'<p:cTn id="{i + 2 + k}" dur="{dur}" fill="hold"/>{tgt}<p:attrNameLst>'
+                      f'<p:attrName>{attr}</p:attrName></p:attrNameLst></p:cBhvr><p:tavLst>'
+                      f'<p:tav tm="0"><p:val><p:fltVal val="0"/></p:val></p:tav>'
+                      f'<p:tav tm="100000"><p:val><p:strVal val="#{attr}"/></p:val></p:tav>'
+                      f'</p:tavLst></p:anim>')
+        body = anims + (f'<p:animEffect transition="in" filter="fade"><p:cBhvr>'
+                        f'<p:cTn id="{i + 4}" dur="{dur}"/>{tgt}</p:cBhvr></p:animEffect>')
+    else:  # fade
+        pid, sub, n = 10, 0, 2
+        body = (f'<p:animEffect transition="in" filter="fade"><p:cBhvr>'
+                f'<p:cTn id="{i + 2}" dur="{dur}"/>{tgt}</p:cBhvr></p:animEffect>')
+    xml = (f'<p:par><p:cTn id="{i}" presetID="{pid}" presetClass="entr" presetSubtype="{sub}" '
+           f'fill="hold" nodeType="withEffect"><p:stCondLst><p:cond delay="{delay}"/>'
+           f'</p:stCondLst><p:childTnLst>{vis}{body}</p:childTnLst></p:cTn></p:par>')
+    return xml, i + n + 1
+
+
+def escribir_animaciones(prs, transicion: bool = True) -> int:
+    """Escribe <p:timing> (y una transicion suave) en cada lamina. Devuelve cuantas animo."""
+    total = 0
+    P = "{http://schemas.openxmlformats.org/presentationml/2006/main}"
+    for slide in prs.slides:
+        sld = slide._element
+        for old in sld.findall(P + "timing") + sld.findall(P + "transition"):
+            sld.remove(old)
+        ext = sld.find(P + "extLst")
+        if transicion:
+            tr = etree.fromstring(f'<p:transition {_NS_P} spd="med"><p:fade/></p:transition>')
+            (ext.addprevious(tr) if ext is not None else sld.append(tr))
+        lista = getattr(slide, "_anim", None) or []
+        if not lista:
+            continue
+        nid, pars = 5, []
+        for spid, kind, delay, dur in lista:
+            x, nid = _efecto(nid, spid, kind, delay, dur)
+            pars.append(x)
+        xml = (f'<p:timing {_NS_P}><p:tnLst><p:par><p:cTn id="1" dur="indefinite" '
+               f'restart="never" nodeType="tmRoot"><p:childTnLst><p:seq concurrent="1" '
+               f'nextAc="seek"><p:cTn id="2" dur="indefinite" nodeType="mainSeq"><p:childTnLst>'
+               f'<p:par><p:cTn id="3" fill="hold"><p:stCondLst><p:cond delay="indefinite"/>'
+               f'<p:cond evt="onBegin" delay="0"><p:tn val="2"/></p:cond></p:stCondLst>'
+               f'<p:childTnLst><p:par><p:cTn id="4" fill="hold"><p:stCondLst>'
+               f'<p:cond delay="0"/></p:stCondLst><p:childTnLst>' + "".join(pars) +
+               f'</p:childTnLst></p:cTn></p:par></p:childTnLst></p:cTn></p:par></p:childTnLst>'
+               f'</p:cTn><p:prevCondLst><p:cond evt="onPrev" delay="0"><p:tgtEl><p:sldTgt/>'
+               f'</p:tgtEl></p:cond></p:prevCondLst><p:nextCondLst><p:cond evt="onNext" '
+               f'delay="0"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond></p:nextCondLst></p:seq>'
+               f'</p:childTnLst></p:cTn></p:par></p:tnLst></p:timing>')
+        el = etree.fromstring(xml)
+        tr = sld.find(P + "transition")
+        if tr is not None:
+            tr.addnext(el)
+        elif ext is not None:
+            ext.addprevious(el)
+        else:
+            sld.append(el)
+        total += 1
+    return total
+
+
+def registrar_barra(slide, x, y, w, h, frac, color, track=None, marker=None):
+    """Anota una barra para generar despues su version animada (GIF que crece)."""
+    lista = getattr(slide, "_barras", None)
+    if lista is None:
+        lista = slide._barras = []
+    fondo = _hex(fondo_en(slide, x + w / 2, y + h / 2))
+    lista.append(dict(x=x, y=y, w=w, h=h, frac=frac, color=color_relleno(color, w, h),
+                      track=color_relleno(track, w, h) if track else None, marker=marker,
+                      fondo=fondo))

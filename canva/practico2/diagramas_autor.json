@@ -1,0 +1,12 @@
+{
+ "flujo": {"aspecto": 1.3433, "media": null,
+           "nota": "Imagen local assets/marco-practico/ob_1.png (la misma que usa el autor en Canva)"},
+ "asis_1": {"aspecto": 1.5939, "media": "MAHXQA1PG4E",
+            "nota": "BPMN AS-IS, parte 1 (imagen subida por el autor a Canva)"},
+ "asis_2": {"aspecto": 1.6149, "media": "MAHXQJiHwXw",
+            "nota": "BPMN AS-IS, parte 2 (imagen subida por el autor a Canva)"},
+ "tobe": {"aspecto": 1.5489, "media": "MAHXQF2Fkm0",
+          "nota": "BPMN del proceso propuesto (imagen subida por el autor a Canva)"},
+ "subproceso": {"aspecto": 1.6029, "media": "MAHXQEgcRxs",
+                "nota": "Subproceso de determinación automática del estado (imagen del autor)"}
+}

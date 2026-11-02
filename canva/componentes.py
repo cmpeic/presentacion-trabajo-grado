@@ -15,8 +15,9 @@ from functools import lru_cache
 
 from PIL import ImageFont
 
-from pptx_kit import (FONT_HEAD, FONT_MONO, arrow_shape, corners, ellipse, line, rect,
-                      text, triangle)
+import pptx_kit
+from pptx_kit import (FONT_HEAD, FONT_MONO, animar, arrow_shape, corners, ellipse, line, rect,
+                      registrar_barra, text, triangle)
 from theme import (BG, BLUE, BLUE_LIGHT, BLUE_TEXT, LINE, MARGIN, MUTED, PANEL, PAPER,
                    SURFACE, YELLOW, header)
 
@@ -177,17 +178,21 @@ def numbadge(slide, x, y, n: str, size=44, fill=YELLOW, color=DARK):
 
 def bar(slide, x, y, w, h, frac: float, color=BLUE_LIGHT, track=CHIP, marker: float | None = None):
     """Barra horizontal: pista + relleno proporcional (+ marca opcional)."""
+    registrar_barra(slide, x, y, w, h, frac, color, track=track, marker=marker)
     rect(slide, x, y, w, h, fill=track)
     if frac > 0:
-        rect(slide, x, y, max(2, w * min(1.0, frac)), h, fill=color)
+        f = rect(slide, x, y, max(2, w * min(1.0, frac)), h, fill=color)
+        animar(slide, f, "wipe", dur_ms=800)
     if marker is not None:
         mx = x + w * marker
-        rect(slide, mx - 1.5, y - 6, 3, h + 12, fill=PAPER)
+        rect(slide, mx - 1.5, y - 6, 3, h + 12,
+             fill=pptx_kit.TINTA if pptx_kit.TEMA == "claro" else PAPER)
 
 
 def flecha(slide, x0, y, x1, color=YELLOW, h=28, alpha=1.0):
     """Flecha de bloque horizontal de x0 a x1 centrada en y."""
-    arrow_shape(slide, x0, y - h / 2, x1 - x0, h, color=color, alpha=alpha)
+    a = arrow_shape(slide, x0, y - h / 2, x1 - x0, h, color=color, alpha=alpha)
+    animar(slide, a, "wipe", dur_ms=500)
 
 
 def flecha_abajo(slide, cx, y0, y1, color=YELLOW, w=28):

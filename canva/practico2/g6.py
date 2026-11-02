@@ -3,7 +3,8 @@
 
 import re
 
-from pptx_kit import add_slide, corners, ellipse, image_fit, line, notes, rect, text
+from pptx_kit import (add_slide, animar, corners, ellipse, image_fit, line, notes, rect,
+                      registrar_barra, text)
 from theme import (ASSETS, BLUE_TEXT, FONDO, LINE, LOGO_BLANCO, LOGO_EMI, MARGIN, MUTED,
                    PAPER, SURFACE, YELLOW)
 from componentes import (BLUE_LIGHT, CHIP, CONTENT_TOP, DARK, FONT_HEAD, FONT_TXT, PANEL_2,
@@ -138,9 +139,11 @@ def p19(prs, notas):
     frac = 6.5166 / 16.608
     for yy, nombre in ((r1, "Manual"), (r2, "Modelo v7.5")):
         text(s, xn, yy, 200, rh, nombre, size=26, bold=True, font=FONT_HEAD, anchor="middle")
-    rect(s, xbar, r1, wbar, rh, fill=BLUE_LIGHT)
+    registrar_barra(s, xbar, r1, wbar, rh, 1.0, BLUE_LIGHT)
+    registrar_barra(s, xbar, r2, wbar * frac, rh, 1.0, YELLOW)
+    animar(s, rect(s, xbar, r1, wbar, rh, fill=BLUE_LIGHT), "wipe", dur_ms=900)
     text(s, xv, r1, 210, rh, "16,608 s", size=34, bold=True, font=FONT_HEAD, anchor="middle")
-    rect(s, xbar, r2, wbar * frac, rh, fill=YELLOW)
+    animar(s, rect(s, xbar, r2, wbar * frac, rh, fill=YELLOW), "wipe", dur_ms=900)
     _segmento(s, xbar + wbar * frac + 6, r2, wbar * (1 - frac) - 6, rh, YELLOW,
               "−10,092 s", rcolor=YELLOW, size=26, dash=True)
     text(s, xv, r2, 210, rh, "6,5166 s", size=34, bold=True, font=FONT_HEAD, color=YELLOW,
@@ -452,37 +455,33 @@ def p22(prs, notas):
 # ------------------------------------------------------------------- P23
 def p23(prs, notas):
     """Lámina 90: cierre con el estilo de la carátula."""
+    import pptx_kit
+    from primera_parte import AUTOR, TUTOR, red_neuronal
+    from theme import LOGO_AZUL, logo, pie, rotulo_central
+
     s = add_slide(prs, bg_image=FONDO)
-    rect(s, MARGIN, 76, 404, 196, fill="#FFFFFF", radius=18, name="Tarjeta logo EMI")
-    image_fit(s, str(LOGO_EMI), MARGIN + 18, 90, 368, 168, name="Logo EMI", trim=True)
-    image_fit(s, LOGO_BLANCO, 552, 124, 300, 100, name="Logo carrera", trim=True)
+    logo(s, LOGO_EMI, 120, 44, 132, name="Logo EMI")
+    logo(s, LOGO_AZUL, 1800, 58, 104, align="right", name="Logo carrera")
+    rotulo_central(s, "TRABAJO DE GRADO", 110, size=34, spacing=6, pad=56, regla=2)
+    rect(s, 120, 224, 1680, 1.5, fill="#D6E1EE")
     # gracias
-    text(s, 140, 330, 1100, 200, "Gracias", size=168, bold=True, font=FONT_HEAD,
-         color=YELLOW, name="Gracias")
-    rect(s, 150, 548, 300, 8, fill=YELLOW)
-    text(s, 150, 600, 1180, 150,
-         [["Modelo de Procesamiento de Lenguaje Natural en la validación"],
-          ["de correspondencia de productos del ecosistema Philips"]],
-         size=34, bold=True, font=FONT_HEAD, line_spacing=1.3, name="Titulo")
+    text(s, 140, 300, 1100, 200, "Gracias", size=168, bold=True, font=FONT_HEAD,
+         color="#0B5EA8", name="Gracias")
+    rect(s, 150, 518, 300, 8, fill=YELLOW)
+    text(s, 150, 570, 1080, 150,
+         [["MODELO DE PROCESAMIENTO DE LENGUAJE NATURAL EN LA"],
+          ["VALIDACIÓN DE CORRESPONDENCIA DE PRODUCTOS"],
+          ["DEL ECOSISTEMA PHILIPS"]],
+         size=30, bold=True, font=FONT_HEAD, line_spacing=1.3, name="Titulo")
     text(s, 150, 736, 1120, 40, "Quedo atento a sus preguntas.", size=30, font=FONT_TXT,
          color=BLUE_TEXT, bold=True)
-    rect(s, 150, 884, 1620, 2, fill=LINE, fill_alpha=0.45)
-    text(s, 150, 912, 1000, 64, "Est. Cañez Larico Pablo Enrique", size=42, bold=True,
-         font=FONT_HEAD, anchor="middle", name="Autor")
-    text(s, 1170, 912, 600, 64, "Tutor: Ing. Víctor Rodríguez Estévez", size=28,
-         color=MUTED, align="right", anchor="middle", font=FONT_TXT)
-    # red neuronal en círculo (como la carátula)
-    cx, cy, r = 1636, 480, 182
-    nodes = [(1440, 196), (1650, 120), (1856, 270), (1880, 610), (1408, 470), (1438, 760),
-             (1700, 818)]
-    for a, b in [(0, 4), (0, 1), (1, 2), (2, 3), (4, 5), (5, 6), (3, 6)]:
-        line(s, *nodes[a], *nodes[b], color=BLUE_LIGHT, width=1.5, alpha=0.45)
-    for (nx, ny) in nodes:
-        ellipse(s, nx, ny, 7, fill=BLUE_TEXT)
-    ellipse(s, cx, cy, r + 44, line="#0B5EA8", line_w=2, line_alpha=0.55)
-    ellipse(s, cx, cy, r, fill=SURFACE, line=BLUE_LIGHT, line_w=5)
-    image_fit(s, str(ASSETS / "introduccion/int_3.png"), cx - 120, cy - 120, 240, 240,
-              name="Red neuronal", trim=True)
+    red_neuronal(s, 1500, 560, 200)
+    rect(s, 120, 880, 1680, 1.5, fill="#D6E1EE")
+    text(s, 120, 904, 1100, 64, AUTOR.upper(), size=42, bold=True, font=FONT_HEAD,
+         anchor="middle", name="Autor")
+    text(s, 1180, 904, 620, 64, TUTOR, size=28, color=MUTED, align="right", anchor="middle",
+         font=FONT_TXT)
+    pie(s)
     notes(s, notas[90])
 
 
