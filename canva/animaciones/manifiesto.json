@@ -1,7 +1,7 @@
 [
  {
   "pagina": 1,
-  "archivo": "red_01.gif",
+  "archivo": "red_01.webm",
   "tipo": "red",
   "left": 1250,
   "top": 310,
@@ -10,7 +10,7 @@
  },
  {
   "pagina": 36,
-  "archivo": "barras_36.gif",
+  "archivo": "barras_36.webm",
   "tipo": "barras",
   "left": 715,
   "top": 957,
@@ -19,7 +19,7 @@
  },
  {
   "pagina": 37,
-  "archivo": "barras_37.gif",
+  "archivo": "barras_37.webm",
   "tipo": "barras",
   "left": 715,
   "top": 957,
@@ -28,7 +28,7 @@
  },
  {
   "pagina": 44,
-  "archivo": "barras_44.gif",
+  "archivo": "barras_44.webm",
   "tipo": "barras",
   "left": 425,
   "top": 431,
@@ -37,7 +37,7 @@
  },
  {
   "pagina": 47,
-  "archivo": "barras_47.gif",
+  "archivo": "barras_47.webm",
   "tipo": "barras",
   "left": 447,
   "top": 361,
@@ -46,7 +46,7 @@
  },
  {
   "pagina": 49,
-  "archivo": "barras_49.gif",
+  "archivo": "barras_49.webm",
   "tipo": "barras",
   "left": 127,
   "top": 427,
@@ -55,7 +55,7 @@
  },
  {
   "pagina": 50,
-  "archivo": "barras_50.gif",
+  "archivo": "barras_50.webm",
   "tipo": "barras",
   "left": 123,
   "top": 473,
@@ -64,16 +64,16 @@
  },
  {
   "pagina": 52,
-  "archivo": "barras_52.gif",
+  "archivo": "barras_52.webm",
   "tipo": "barras",
   "left": 499,
   "top": 811,
   "width": 1102,
-  "height": 159
+  "height": 160
  },
  {
   "pagina": 53,
-  "archivo": "barras_53.gif",
+  "archivo": "barras_53.webm",
   "tipo": "barras",
   "left": 1275,
   "top": 852,
@@ -82,16 +82,16 @@
  },
  {
   "pagina": 54,
-  "archivo": "barras_54.gif",
+  "archivo": "barras_54.webm",
   "tipo": "barras",
   "left": 1053,
   "top": 395,
   "width": 562,
-  "height": 577
+  "height": 578
  },
  {
   "pagina": 56,
-  "archivo": "barras_56.gif",
+  "archivo": "barras_56.webm",
   "tipo": "barras",
   "left": 839,
   "top": 344,
@@ -100,7 +100,7 @@
  },
  {
   "pagina": 57,
-  "archivo": "barras_57.gif",
+  "archivo": "barras_57.webm",
   "tipo": "barras",
   "left": 179,
   "top": 653,
@@ -109,7 +109,7 @@
  },
  {
   "pagina": 58,
-  "archivo": "barras_58.gif",
+  "archivo": "barras_58.webm",
   "tipo": "barras",
   "left": 119,
   "top": 561,
@@ -118,7 +118,7 @@
  },
  {
   "pagina": 59,
-  "archivo": "barras_59.gif",
+  "archivo": "barras_59.webm",
   "tipo": "barras",
   "left": 695,
   "top": 484,
@@ -127,16 +127,16 @@
  },
  {
   "pagina": 60,
-  "archivo": "barras_60.gif",
+  "archivo": "barras_60.webm",
   "tipo": "barras",
   "left": 481,
   "top": 427,
   "width": 1194,
-  "height": 441
+  "height": 442
  },
  {
   "pagina": 61,
-  "archivo": "barras_61.gif",
+  "archivo": "barras_61.webm",
   "tipo": "barras",
   "left": 1153,
   "top": 395,
@@ -145,7 +145,7 @@
  },
  {
   "pagina": 62,
-  "archivo": "barras_62.gif",
+  "archivo": "barras_62.webm",
   "tipo": "barras",
   "left": 755,
   "top": 575,
@@ -154,7 +154,7 @@
  },
  {
   "pagina": 64,
-  "archivo": "barras_64.gif",
+  "archivo": "barras_64.webm",
   "tipo": "barras",
   "left": 339,
   "top": 749,
@@ -163,7 +163,7 @@
  },
  {
   "pagina": 67,
-  "archivo": "barras_67.gif",
+  "archivo": "barras_67.webm",
   "tipo": "barras",
   "left": 997,
   "top": 775,
@@ -172,7 +172,7 @@
  },
  {
   "pagina": 69,
-  "archivo": "red_69.gif",
+  "archivo": "red_69.webm",
   "tipo": "red",
   "left": 1250,
   "top": 310,
