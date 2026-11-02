@@ -83,7 +83,10 @@ def video_barras(barras: list[dict], out: Path, marcador="#0B1F3A") -> dict:
         for k, b in enumerate(barras):
             bx, by = round(b["x"] - x0), round(b["y"] - y0)
             bw, bh = round(b["w"]), round(b["h"])
-            d.rectangle([bx, by, bx + bw - 1, by + bh - 1],
+            # solo se tapa la parte rellena de la barra estatica (con el color de la pista):
+            # el resto queda transparente, asi las cifras escritas sobre la pista se ven
+            full = max(1, round(bw * min(1.0, b["frac"])))
+            d.rectangle([bx, by, bx + full - 1, by + bh - 1],
                         fill=_c3(b["track"] or b["fondo"]) + (255,))
             fw = round(bw * min(1.0, b["frac"]) * _ease((t - k * PASO_MS) / DUR_MS))
             if fw >= 1:
