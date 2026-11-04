@@ -101,6 +101,20 @@ def color_linea(c: str | None) -> str | None:
     return c
 
 
+def color_trazo(slide, c: str | None, x, y, w, h) -> str | None:
+    """Color de un trazo fino (raya de fraccion, flecha, filete) segun lo que tiene detras.
+
+    En el tema oscuro estos trazos eran blancos; sobre un fondo claro pasan a tinta,
+    y sobre un fondo oscuro o saturado (azul, rojo) siguen blancos."""
+    if TEMA != "claro" or c is None:
+        return c
+    r, g, b = _c3(c)
+    if min(r, g, b) >= 230:  # blanco o casi blanco
+        fondo = fondo_en(slide, x + w / 2, y + h / 2)
+        return TINTA if _lum(fondo) >= 0.36 else c
+    return color_relleno(c, w, h)
+
+
 def _registrar(slide, x, y, w, h, fill, alpha):
     """Anota un relleno opaco o translucido en el modelo de pintura de la lamina."""
     if TEMA != "claro" or fill is None or w <= 0 or h <= 0:
@@ -230,7 +244,7 @@ def rect(slide, x, y, w, h, fill=None, line=None, line_w=1.0, fill_alpha=1.0,
     shp = slide.shapes.add_shape(kind, px(x), px(y), px(w), px(h))
     if radius:
         shp.adjustments[0] = min(0.5, radius / min(w, h))
-    fill = color_relleno(fill, w, h)
+    fill = color_trazo(slide, fill, x, y, w, h) if min(w, h) <= 6 else color_relleno(fill, w, h)
     _registrar(slide, x, y, w, h, fill, fill_alpha)
     _style_fill(shp, fill, fill_alpha)
     _style_line(shp, color_linea(line), line_w, line_alpha, dash)
@@ -277,7 +291,7 @@ def line(slide, x1, y1, x2, y2, color="#6D8FB2", width=1.0, alpha=1.0, arrow=Fal
 def arrow_shape(slide, x, y, w, h, color="#FFD21F", alpha=1.0, name: str | None = None):
     """Flecha de bloque rellena apuntando a la derecha."""
     shp = slide.shapes.add_shape(MSO_SHAPE.RIGHT_ARROW, px(x), px(y), px(w), px(h))
-    _style_fill(shp, color_relleno(color, 99, 99), alpha)
+    _style_fill(shp, color_trazo(slide, color, x, y, w, h), alpha)
     _style_line(shp, None)
     _no_shadow(shp)
     if name:
@@ -289,7 +303,7 @@ def triangle(slide, x, y, w, h, color="#FFD21F", rotation=0, alpha=1.0, name=Non
     """Triangulo isosceles relleno; rotation=90 apunta a la derecha, 180 hacia abajo."""
     shp = slide.shapes.add_shape(MSO_SHAPE.ISOSCELES_TRIANGLE, px(x), px(y), px(w), px(h))
     shp.rotation = rotation
-    _style_fill(shp, color_relleno(color, 99, 99), alpha)
+    _style_fill(shp, color_trazo(slide, color, x, y, w, h), alpha)
     _style_line(shp, None)
     _no_shadow(shp)
     if name:
