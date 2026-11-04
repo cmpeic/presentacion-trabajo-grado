@@ -4,7 +4,7 @@
 import re
 
 from pptx_kit import (add_slide, animar, corners, ellipse, image_fit, line, notes, rect,
-                      registrar_barra, text)
+                      text)
 from theme import (ASSETS, BLUE_TEXT, FONDO, LINE, LOGO_BLANCO, LOGO_EMI, MARGIN, MUTED,
                    PAPER, SURFACE, YELLOW)
 from componentes import (BLUE_LIGHT, CHIP, CONTENT_TOP, DARK, FONT_HEAD, FONT_TXT, PANEL_2,
@@ -139,8 +139,6 @@ def p19(prs, notas):
     frac = 6.5166 / 16.608
     for yy, nombre in ((r1, "Manual"), (r2, "Modelo v7.5")):
         text(s, xn, yy, 200, rh, nombre, size=26, bold=True, font=FONT_HEAD, anchor="middle")
-    registrar_barra(s, xbar, r1, wbar, rh, 1.0, BLUE_LIGHT)
-    registrar_barra(s, xbar, r2, wbar * frac, rh, 1.0, YELLOW)
     animar(s, rect(s, xbar, r1, wbar, rh, fill=BLUE_LIGHT), "wipe", dur_ms=900)
     text(s, xv, r1, 210, rh, "16,608 s", size=34, bold=True, font=FONT_HEAD, anchor="middle")
     animar(s, rect(s, xbar, r2, wbar * frac, rh, fill=YELLOW), "wipe", dur_ms=900)

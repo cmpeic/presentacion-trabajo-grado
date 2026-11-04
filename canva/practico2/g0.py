@@ -9,7 +9,7 @@ se insertan en Canva sobre el marco que deja esta lámina (ver DIAGRAMAS).
 from pathlib import Path
 
 from pptx_kit import (add_slide, animar, ellipse, image, image_fit, notes, rect,
-                      registrar_barra, text)
+                      text)
 from theme import ASSETS, FONDO, YELLOW
 from componentes import (BLUE_LIGHT, CHIP, CONTENT_TOP, DARK, FONT_HEAD, FONT_TXT, MUTED, PAPER,
                          RED, bar, card, flecha, label, numbadge, subencabezado, tag,
@@ -294,7 +294,6 @@ def p_tiempos(prs, nota):
         by = ry + 82
         rect(s, ax0, by, axw, 30, fill=CHIP)
         x_a, x_b = ax0 + axw * a / 120, ax0 + axw * b / 120
-        registrar_barra(s, x_a, by, x_b - x_a, 30, 1.0, col)
         r_ = rect(s, x_a, by, x_b - x_a, 30, fill=col)
         animar(s, r_, "wipe", delay_ms=200 + k * 200, dur_ms=700)
         text(s, x_b + 12 if b < 100 else x_a - 312, by - 2, 300, 34, rot, size=24, bold=True,

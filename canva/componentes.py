@@ -17,7 +17,7 @@ from PIL import ImageFont
 
 import pptx_kit
 from pptx_kit import (FONT_HEAD, FONT_MONO, animar, arrow_shape, corners, ellipse, line, rect,
-                      registrar_barra, text, triangle)
+                      text, triangle)
 from theme import (BG, BLUE, BLUE_LIGHT, BLUE_TEXT, LINE, MARGIN, MUTED, PANEL, PAPER,
                    SURFACE, YELLOW, header)
 
@@ -178,7 +178,6 @@ def numbadge(slide, x, y, n: str, size=44, fill=YELLOW, color=DARK):
 
 def bar(slide, x, y, w, h, frac: float, color=BLUE_LIGHT, track=CHIP, marker: float | None = None):
     """Barra horizontal: pista + relleno proporcional (+ marca opcional)."""
-    registrar_barra(slide, x, y, w, h, frac, color, track=track, marker=marker)
     rect(slide, x, y, w, h, fill=track)
     if frac > 0:
         f = rect(slide, x, y, max(2, w * min(1.0, frac)), h, fill=color)

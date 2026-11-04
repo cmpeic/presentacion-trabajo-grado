@@ -10,8 +10,7 @@ Versión por defecto (69 láminas, el orden de la versión editada por el autor 
   tiempos manuales y las 36 columnas por rol).
 - 46-69: marco práctico rediseñado (practico2/g1..g6 y la lámina de McNemar).
 
-Además escribe las animaciones de entrada del PPTX, genera los videos (WebM transparente) de las gráficas
-animadas (canva/animaciones/) y el manifiesto con su posición para insertarlos en Canva.
+Además escribe las animaciones de entrada del PPTX. Las gráficas quedan estáticas.
 Las notas del orador que el autor editó en Canva se toman de practico2/notas_autor.json.
 """
 
@@ -32,7 +31,6 @@ import primera_parte  # noqa: E402
 
 GRUPOS = ["g1", "g2", "g3", "g4", "g5", "g6"]
 NOTAS_AUTOR = HERE / "practico2" / "notas_autor.json"
-DIAGRAMAS_AUTOR = HERE / "practico2" / "diagramas_autor.json"
 
 
 def oe1(prs, n):
@@ -65,7 +63,6 @@ def main():
                     help="convierte las 90 láminas originales (fondo oscuro, sin condensar)")
     ap.add_argument("--preview", action="store_true",
                     help="ajusta el texto de una línea para previsualizar con LibreOffice")
-    ap.add_argument("--sin-video", action="store_true", help="no regenera los videos animados")
     a = ap.parse_args()
     pptx_kit.OPT_DIR = str(HERE / "build" / "img")
     n = notas()
@@ -83,7 +80,7 @@ def main():
                                 ext / "deco", n[i])
     else:
         primera_parte.construir(prs, n)
-        diagramas = oe1(prs, n)
+        oe1(prs, n)
         marco_practico(prs, n)
         # notas del orador tal como las dejó el autor en Canva
         if NOTAS_AUTOR.exists():
@@ -94,16 +91,6 @@ def main():
                     slide.notes_slide.notes_text_frame.text = t
         anim = pptx_kit.escribir_animaciones(prs)
         print(f"animaciones de entrada en {anim} láminas")
-        if not a.sin_video:
-            import animaciones
-            man = animaciones.generar(prs)
-            autor = json.loads(DIAGRAMAS_AUTOR.read_text(encoding="utf-8")) \
-                if DIAGRAMAS_AUTOR.exists() else {}
-            for clave, d in diagramas.items():
-                d["media"] = autor.get(clave, {}).get("media")
-            (animaciones.OUT / "diagramas.json").write_text(
-                json.dumps(diagramas, indent=1, ensure_ascii=False), encoding="utf-8")
-            print(f"{len(man)} videos animados -> {animaciones.OUT}")
 
     prs.core_properties.title = "Presentación de trabajo de grado"
     prs.core_properties.author = "Pablo Enrique Cañez Larico"

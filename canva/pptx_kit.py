@@ -541,14 +541,3 @@ def escribir_animaciones(prs, transicion: bool = True) -> int:
             sld.append(el)
         total += 1
     return total
-
-
-def registrar_barra(slide, x, y, w, h, frac, color, track=None, marker=None):
-    """Anota una barra para generar despues su version animada (GIF que crece)."""
-    lista = getattr(slide, "_barras", None)
-    if lista is None:
-        lista = slide._barras = []
-    fondo = _hex(fondo_en(slide, x + w / 2, y + h / 2))
-    lista.append(dict(x=x, y=y, w=w, h=h, frac=frac, color=color_relleno(color, w, h),
-                      track=color_relleno(track, w, h) if track else None, marker=marker,
-                      fondo=fondo))

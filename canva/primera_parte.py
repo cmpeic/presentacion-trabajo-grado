@@ -72,14 +72,17 @@ AUTOR = "Est. Cañez Larico Pablo Enrique"
 TUTOR = "Tutor: Ing. Víctor Rodríguez Estévez"
 
 
-def red_neuronal(s, cx, cy, r):
-    """Circulo con la red neuronal y constelacion de nodos (portada y cierre).
-
-    Deja anotada la posicion para el GIF animado que se coloca encima en Canva."""
-    s._red = (cx, cy, r)
+def constelacion(cx, cy):
+    """Nodos y aristas de la constelacion que rodea el circulo de la red."""
     nodes = [(cx - 196, cy - 284), (cx + 14, cy - 360), (cx + 220, cy - 210), (cx + 244, cy + 130),
              (cx - 228, cy - 10), (cx - 198, cy + 280), (cx + 64, cy + 338)]
-    for a, b in [(0, 4), (0, 1), (1, 2), (2, 3), (4, 5), (5, 6), (3, 6)]:
+    return nodes, [(0, 4), (0, 1), (1, 2), (2, 3), (4, 5), (5, 6), (3, 6)]
+
+
+def red_neuronal(s, cx, cy, r):
+    """Circulo con la red neuronal y constelacion de nodos (portada y cierre)."""
+    nodes, aristas = constelacion(cx, cy)
+    for a, b in aristas:
         line(s, *nodes[a], *nodes[b], color=BLUE_LIGHT, width=1.5, alpha=0.45)
     for (nx, ny) in nodes:
         ellipse(s, nx, ny, 7, fill=BLUE_TEXT)

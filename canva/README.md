@@ -28,14 +28,12 @@ sigue siendo blanco y el blanco sobre una tarjeta clara pasa a tinta oscura.
 ## Movimiento
 
 - Animaciones de entrada nativas del PPTX (barras y flechas que entran, cifras que
-  aparecen) y transición suave entre láminas.
-- Gráficas animadas en `animaciones/`: cada gráfica de barras tiene un video WebM transparente con las
-  barras creciendo y la carátula y el cierre tienen la red neuronal con pulsos.
-  `manifiesto.json` indica la lámina y la caja exacta donde va cada video; se
-  insertan sobre la lámina importada en Canva (las barras estáticas quedan debajo
-  como respaldo).
-- `animaciones/diagramas.json` indica dónde van los diagramas del autor, que se
-  reemplazan en Canva por sus imágenes originales.
+  aparecen) y transición suave entre láminas. Las gráficas en sí son estáticas: los
+  videos superpuestos se descartaron porque Canva, al presentar, no respeta su
+  transparencia.
+- Los diagramas del autor (BPMN y subproceso) van en un marco con el aspecto de su
+  imagen; en Canva se reemplazan por las imágenes originales del autor
+  (`practico2/diagramas_autor.json` guarda su identificador en Canva).
 
 Las fuentes son Montserrat (títulos), Barlow (texto) y Roboto Mono (código), todas
 disponibles en Canva. Barlow reemplaza a Bahnschrift y Montserrat a Cambria.
@@ -53,8 +51,7 @@ disponibles en Canva. Barlow reemplaza a Bahnschrift y Montserrat a Cambria.
 | `guion.py` | Notas del orador por lámina, a partir de `GUION.md`. |
 | `extraer/` | Playwright: abre `index.html`, avanza el timeline a cada lámina y extrae cajas, textos, imágenes y decoraciones. |
 | `build/ext/` | Resultado de la extracción (JSON y PNG de decoraciones). Permite reconstruir el PPTX sin Node. |
-| `animaciones.py` | Genera los videos animados con transparencia (barras que crecen, red neuronal) y su manifiesto; requiere ffmpeg. |
-| `construir.py` | Arma el PPTX final, sus animaciones y los videos. |
+| `construir.py` | Arma el PPTX final con sus animaciones de entrada. |
 
 ## Reconstruir
 
@@ -62,7 +59,7 @@ disponibles en Canva. Barlow reemplaza a Bahnschrift y Montserrat a Cambria.
 # Solo si cambió index.html (requiere Node, Playwright y las fuentes TTF en ~/.fonts)
 cd canva/extraer && npm install && node run_extract.js ../build/ext 35 90 && cd ../..
 
-# Armar el PPTX en fondo blanco, con animaciones y videos (--completa: 90 láminas, estilo oscuro)
+# Armar el PPTX en fondo blanco (--completa: 90 láminas, estilo oscuro)
 python3 canva/construir.py
 
 # Previsualizar o verificar cifras de un grupo del marco práctico
