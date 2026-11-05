@@ -17,9 +17,9 @@ from __future__ import annotations
 from pptx.enum.shapes import MSO_SHAPE
 
 from pptx_kit import (FONT_HEAD, FONT_MONO, _no_shadow, _style_fill, _style_line, add_slide,
-                      arrow_shape, colores_literales, ellipse, line, notes, px, rect, text,
-                      triangle)
-from theme import header
+                      arrow_shape, colores_literales, ellipse, image_fit, line, notes, px, rect,
+                      text, triangle)
+from theme import ASSETS, header
 from componentes import text_width, wrap_lines
 
 TXT = "Barlow"
@@ -746,22 +746,45 @@ def validacion(prs, nota=NOTA_VALIDACION, num=None):
 
 
 # ------------------------------------------------------------------ retailers
+LOGOS = ASSETS / "retailers"  # PNG de logos (ver assets/retailers/FUENTES.md)
+
+
+def C(nombre, color, logo=None, marca=None, sub=None, spacing=0):
+    """Un comercio: con `logo` se muestra su PNG; sin él, su logotipo de texto (`marca`)
+    en el color de la marca. `sub` es una leyenda corta bajo el logo."""
+    return dict(nombre=nombre, color=color, logo=logo, marca=marca or nombre, sub=sub,
+                spacing=spacing)
+
+
 GRUPOS = [
-    ("tienda", "MARKETPLACES", [("Amazon", "#FF9900"), ("Mercado Libre", "#FFE600"),
-                                ("Flipkart", "#2874F0"), ("Shopee", "#EE4D2D"),
-                                ("Lazada", "#F57224"), ("bol.", "#0000A4")], None),
-    ("monitor", "ELECTRÓNICA", [("MediaMarkt", "#DF0000"), ("Best Buy", "#0046BE"),
-                                ("Saturn", "#F27C00"), ("Euronics", "#1E3C8C"),
-                                ("Alza", "#1D59A8"), ("Komplett", "#F6C31B")], None),
-    ("carrito", "RETAIL", [("Falabella", "#AAD500"), ("Ripley", "#5A2C83"),
-                           ("Cdiscount", "#E6007E"), ("Darty", "#E30613"), ("OTTO", "#E3000F"),
-                           ("Trendyol", "#F27A1A"), ("Kroger", "#1C4BA0"), ("Coppel", "#FFD200"),
-                           ("Teknosa", "#F15A22"), ("takealot", "#0B79BF")], None),
-    ("bolsa", "PHILIPS STORES", [("Philips Store MX", AZUL), ("Philips Shop TW", AZUL),
-                                 ("Philips Sound Store DE", AZUL)],
-     ("Cadenas regionales", [("Krëfel", "#1D4F91"), ("Verkkokauppa.com", "#E2001A"),
-                             ("Tokmanni", "#E30613"), ("Whiteaway", "#1F5C3B"),
-                             ("Datart", "#0B2E6B")])),
+    ("tienda", "MARKETPLACES", [C("Amazon", "#FF9900", "amazon"),
+                                C("Mercado Libre", "#FFE600", "mercadolibre"),
+                                C("Flipkart", "#2874F0", "flipkart"),
+                                C("Shopee", "#EE4D2D", "shopee"),
+                                C("Lazada", "#0F146D"), C("bol.", "#0000A4")], None),
+    ("monitor", "ELECTRÓNICA", [C("MediaMarkt", "#DF0000", "mediamarkt"),
+                                C("Best Buy", "#0046BE", "bestbuy"),
+                                C("Saturn", "#F27C00", "saturn"),
+                                C("Euronics", "#1E3C8C", marca="EURONICS", spacing=1.5),
+                                C("Alza", "#1D59A8", marca="alza"),
+                                C("Komplett", "#F6C31B", "komplett")], None),
+    ("carrito", "RETAIL", [C("Falabella", "#5E9A14", marca="falabella"),
+                           C("Ripley", "#5A2C83"),
+                           C("Cdiscount", "#E6007E"), C("Darty", "#E30613", "darty"),
+                           C("OTTO", "#E3000F", "otto"),
+                           C("Trendyol", "#F27A1A", marca="trendyol"),
+                           C("Kroger", "#1C4BA0"), C("Coppel", "#FFD200", "coppel"),
+                           C("Teknosa", "#F15A22", marca="teknosa"),
+                           C("takealot", "#0B79BF")], None),
+    ("bolsa", "PHILIPS STORES", [C("Philips Store MX", "#0B5ED7", marca="PHILIPS",
+                                   sub="Store · México", spacing=3),
+                                 C("Philips Shop TW", "#0B5ED7", marca="PHILIPS",
+                                   sub="Shop · Taiwán", spacing=3),
+                                 C("Philips Sound Store DE", "#0B5ED7", marca="PHILIPS",
+                                   sub="Sound Store · Alemania", spacing=3)],
+     ("Cadenas regionales", [C("Krëfel", "#1D4F91"), C("Verkkokauppa.com", "#E2001A"),
+                             C("Tokmanni", "#E30613"), C("Whiteaway", "#1F5C3B"),
+                             C("Datart", "#0B2E6B", marca="DATART", spacing=1.5)])),
 ]
 NOTA_RETAILERS = (
     "Philips no vende en un solo lugar. Sus productos aparecen en marketplaces globales como "
@@ -804,23 +827,38 @@ DESCRIPCIONES = {
 }
 
 
-def _tam_que_cabe(nombre, ancho, size, minimo=15):
-    """Mayor tamaño (≤ size) con el que el nombre cabe en una línea."""
-    while size > minimo and text_width(nombre, size, FONT_HEAD, True) > ancho:
+def _tam_que_cabe(nombre, ancho, size, minimo=13, spacing=0):
+    """Mayor tamaño (≤ size) con el que el texto cabe en una línea."""
+    while size > minimo and text_width(nombre, size, FONT_HEAD, True, spacing) > ancho:
         size -= 1
     return size
 
 
+def _tile(s, x, y, w, h, c):
+    """Tarjeta blanca con el logo del comercio (o su logotipo de texto) centrado."""
+    rect(s, x, y, w, h, fill=BLANCO, line=BORDE, line_w=1.5, radius=12)
+    px_, py_ = (24, 14) if w > 200 else (14, 14)
+    bx, by, bw, bh = x + px_, y + py_, w - 2 * px_, h - 2 * py_
+    if c["sub"]:
+        bh -= 24
+    if c["logo"]:
+        image_fit(s, str(LOGOS / f"{c['logo']}.png"), bx, by, bw, min(bh, 62),
+                  name=f"Logo {c['nombre']}", trim=True)
+    else:
+        tope = 30 if w > 200 else 25
+        size = _tam_que_cabe(c["marca"], bw, tope, spacing=c["spacing"])
+        t(s, bx - 4, by, bw + 8, bh, c["marca"], size=size, bold=True, font=FONT_HEAD,
+          color=c["color"], align="center", anchor="middle", spacing=c["spacing"],
+          name=f"Logo {c['nombre']}")
+    if c["sub"]:
+        t(s, x + 6, y + h - py_ - 26, w - 12, 26, c["sub"], size=16, color=TINTA_2,
+          align="center", anchor="middle")
+
+
 def _fila_comercios(s, x, y, w, comercios, cols, h=62, gap=14, size=22):
     cw = (w - (cols - 1) * gap) / cols
-    for k, (nombre, color) in enumerate(comercios):
-        cx = x + (k % cols) * (cw + gap)
-        cy = y + (k // cols) * (h + gap)
-        rect(s, cx, cy, cw, h, fill=BLANCO, line=BORDE, line_w=1.5, radius=12)
-        rect(s, cx + 12, cy + h / 2 - 14, 7, 28, fill=color, radius=3)
-        tw = cw - 36
-        t(s, cx + 28, cy, tw + 4, h, nombre, size=_tam_que_cabe(nombre, tw - 4, size),
-          bold=True, font=FONT_HEAD, anchor="middle")
+    for k, c in enumerate(comercios):
+        _tile(s, x + (k % cols) * (cw + gap), y + (k // cols) * (h + gap), cw, h, c)
     filas = (len(comercios) + cols - 1) // cols
     return y + filas * (h + gap) - gap
 
@@ -858,15 +896,15 @@ def retailers(prs, nota=NOTA_RETAILERS, num=None):
               font=FONT_HEAD, color=AZUL, align="center", anchor="middle")
             x0, ww = x + 24, w - 48
             if extra:
-                yy = _fila_comercios(s, x0, y + 100, ww, comercios, 3, h=60, size=20)
-                rect(s, x0, yy + 16, ww, 1.5, fill=BORDE)
-                t(s, x0, yy + 24, 400, 26, extra[0].upper(), size=17, bold=True,
+                yy = _fila_comercios(s, x0, y + 98, ww, comercios, 3, h=88, gap=12)
+                rect(s, x0, yy + 12, ww, 1.5, fill=BORDE)
+                t(s, x0, yy + 18, 400, 26, extra[0].upper(), size=17, bold=True,
                   font=FONT_HEAD, color=ORO, spacing=1.6, anchor="middle")
-                _bloque(s, x0, yy + 58, ww, y + h - 20 - (yy + 58), extra[1], 3, h_max=56,
-                        gap=12, size=20)
+                _bloque(s, x0, yy + 50, ww, y + h - 18 - (yy + 50), extra[1], 3, h_max=78,
+                        gap=10)
             else:
-                cols = 3 if len(comercios) <= 6 else 4
-                _bloque(s, x0, y + 100, ww, h - 100 - 24, comercios, cols, h_max=80, size=22)
+                cols = 3 if len(comercios) <= 6 else 5
+                _bloque(s, x0, y + 100, ww, h - 100 - 24, comercios, cols, h_max=110)
         # globo central y conectores
         for (x, y, w, h) in cajas:
             ex = x + w if x < ccx else x

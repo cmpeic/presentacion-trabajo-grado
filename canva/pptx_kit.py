@@ -200,10 +200,13 @@ def anclar(slide, clave: str) -> None:
     ANCLAS[clave] = slide._num
 
 
-def lamina(clave: str) -> int:
-    """Número de la lámina anclada con `clave` (debe construirse antes de citarla)."""
+def lamina(clave: str) -> int | str:
+    """Número de la lámina anclada con `clave` (debe construirse antes de citarla).
+
+    Al previsualizar un grupo suelto la lámina citada puede no existir: devuelve «??»."""
     if clave not in ANCLAS:
-        raise KeyError(f"lámina sin anclar: {clave}")
+        print(f"aviso: lámina sin anclar «{clave}» (se escribe ??)")
+        return "??"
     return ANCLAS[clave]
 
 

@@ -13,7 +13,7 @@ lleva el número de su antecedente más una letra:
 
 | Tarjeta | Lámina | Contenido | Va después de |
 |---|---|---|---|
-| 01A | 8 | Retailers del ecosistema: marketplaces, electrónica, retail y Philips Stores | 01 · La empresa |
+| 01A | 8 | Retailers del ecosistema: los logos de cada comercio en marketplaces, electrónica, retail y Philips Stores (`assets/retailers/`, fuentes en `FUENTES.md`) | 01 · La empresa |
 | 02A-02E | 10-14 | Anatomía de una página retailer (Amazon, MediaMarkt, Falabella, Mercado Libre, Best Buy) | 02 · La extracción automática |
 | 03A | 16 | Validación de correspondencia: criterio por criterio y los cuatro estados | 03 · La comparación manual |
 
