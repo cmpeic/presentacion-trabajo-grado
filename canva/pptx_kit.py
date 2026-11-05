@@ -7,6 +7,8 @@ expresan en pixeles y se convierten a puntos (1 px = 0,75 pt).
 
 from __future__ import annotations
 
+from contextlib import contextmanager
+
 from pptx import Presentation
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_CONNECTOR, MSO_SHAPE
@@ -72,6 +74,17 @@ def _lum(c) -> float:
 def _mezcla(a, b, t: float):
     """t*a + (1-t)*b."""
     return tuple(t * x + (1 - t) * y for x, y in zip(a, b))
+
+
+@contextmanager
+def colores_literales():
+    """Dentro del bloque los colores se emiten tal cual (laminas disenadas ya en claro)."""
+    global TEMA
+    previo, TEMA = TEMA, "literal"
+    try:
+        yield
+    finally:
+        TEMA = previo
 
 
 def color_relleno(c: str | None, w: float = 999, h: float = 999) -> str | None:

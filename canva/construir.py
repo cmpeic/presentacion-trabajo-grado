@@ -4,11 +4,13 @@ Uso:
     python3 canva/construir.py                # versión en fondo blanco (por defecto)
     python3 canva/construir.py --completa     # 90 láminas originales convertidas (fondo oscuro)
 
-Versión por defecto (69 láminas, el orden de la versión editada por el autor en Canva):
-- 1-34: primera_parte.py (carátula a marco teórico).
-- 35-45: practico2/g0.py (OE1: escala, metodologías, actores, diagramas del autor,
+Versión por defecto (75 láminas, el orden de la versión editada por el autor en Canva):
+- 1-40: primera_parte.py (carátula a marco teórico), con las seis láminas de
+  antecedentes_pm.py: anatomía de cinco páginas retailer (9-13) y validación de
+  correspondencia (15).
+- 41-51: practico2/g0.py (OE1: escala, metodologías, actores, diagramas del autor,
   tiempos manuales y las 36 columnas por rol).
-- 46-69: marco práctico rediseñado (practico2/g1..g6 y la lámina de McNemar).
+- 52-75: marco práctico rediseñado (practico2/g1..g6 y la lámina de McNemar).
 
 Además escribe las animaciones de entrada del PPTX. Las gráficas quedan estáticas.
 Las notas del orador que el autor editó en Canva se toman de practico2/notas_autor.json.
@@ -34,7 +36,7 @@ NOTAS_AUTOR = HERE / "practico2" / "notas_autor.json"
 
 
 def oe1(prs, n):
-    """Láminas 35-45 en el orden que dejó el autor en Canva."""
+    """Láminas 41-51 en el orden que dejó el autor en Canva."""
     import g0
     g0.construir(prs, n)
     return g0.DIAGRAMAS

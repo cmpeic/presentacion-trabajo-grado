@@ -5,11 +5,12 @@ pensado para importarse en Canva como diseño editable: los textos quedan como
 texto, las cajas como formas y los íconos como imágenes. Cada lámina lleva sus
 notas del orador tomadas de `GUION.md`.
 
-La versión por defecto tiene 69 láminas, en el orden que dejó el autor en Canva:
-incluye sus diagramas (flujo lógico, BPMN AS-IS en dos partes, BPMN propuesto y
-subproceso), la lámina de tiempos manuales y la contrastación estadística
-(McNemar). Con `--completa` se obtiene la conversión directa de las 90 láminas
-originales en el estilo oscuro anterior.
+La versión por defecto tiene 75 láminas. Sigue el orden que dejó el autor en Canva,
+con sus diagramas (flujo lógico, BPMN AS-IS en dos partes, BPMN propuesto y
+subproceso), la lámina de tiempos manuales y la contrastación estadística (McNemar),
+y suma seis láminas de antecedentes que explican el product matching: la anatomía de
+cinco páginas retailer y la validación de correspondencia. Con `--completa` se obtiene
+la conversión directa de las 90 láminas originales en el estilo oscuro anterior.
 
 ## Estilo
 
@@ -44,7 +45,8 @@ disponibles en Canva. Barlow reemplaza a Bahnschrift y Montserrat a Cambria.
 |---|---|
 | `pptx_kit.py` | Primitivas en píxeles: rectángulos, texto, imágenes, esquineros y transparencias. |
 | `theme.py` | Paleta, encabezado, paneles y distintivos numerados. |
-| `primera_parte.py` | Láminas 1-34: carátula, introducción, antecedentes, problema, formulación, objetivo, hipótesis, variables, matriz y marco teórico. |
+| `primera_parte.py` | Láminas 1-40: carátula, introducción, antecedentes, problema, formulación, objetivo, hipótesis, variables, matriz y marco teórico. |
+| `antecedentes_pm.py` | Antecedentes del product matching: anatomía de cinco páginas retailer (Amazon, MediaMarkt, Falabella, Mercado Libre y Best Buy) y la validación de correspondencia con los cuatro estados. |
 | `practico.py` | Solo con `--completa` (láminas 35-90, estilo oscuro): convierte en formas y texto nativos las primitivas extraídas de `index.html`. |
 | `componentes.py` | Componentes del rediseño: tarjetas, cifras, chips, barras, flechas y ecuaciones con fracciones, sumatorias y exponentes. |
 | `practico2/` | OE1 rediseñado (`g0.py`: escala, metodologías, actores, diagramas del autor, tiempos y columnas), marco práctico (`g1.py` a `g6.py`), la lámina de McNemar (`mcnemar.py`), la guía de diseño, el contenido original de referencia, `check_cifras.py` (cada cifra debe existir en el original) y `preview.py`. |

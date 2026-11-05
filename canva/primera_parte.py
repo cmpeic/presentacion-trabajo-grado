@@ -515,9 +515,15 @@ def construir(prs, notas):
     caratula(prs, notas[1])
     for k in range(4):
         introduccion(prs, k, notas[2 + k])
+    import antecedentes_pm
+
     antecedentes_mosaico(prs, notas[6])
     for k in range(6):
         antecedentes_foco(prs, k, notas[7 + k])
+        if k == 1:    # tras «02 · La extracción automática»: anatomía de cinco páginas
+            antecedentes_pm.construir_extraccion(prs)
+        elif k == 2:  # tras «03 · La comparación manual»: validación de correspondencia
+            antecedentes_pm.construir_validacion(prs)
     problema_tablero(prs, notas[13])
     for k in range(4):
         problema_foco(prs, k, notas[14 + k])
