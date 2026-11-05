@@ -520,7 +520,9 @@ def construir(prs, notas):
     antecedentes_mosaico(prs, notas[6])
     for k in range(6):
         antecedentes_foco(prs, k, notas[7 + k])
-        if k == 1:    # tras «02 · La extracción automática»: anatomía de cinco páginas
+        if k == 0:    # tras «01 · La empresa»: los cuatro tipos de comercio (01A)
+            antecedentes_pm.construir_retailers(prs)
+        elif k == 1:  # tras «02 · La extracción automática»: anatomía de cinco páginas
             antecedentes_pm.construir_extraccion(prs)
         elif k == 2:  # tras «03 · La comparación manual»: validación de correspondencia
             antecedentes_pm.construir_validacion(prs)

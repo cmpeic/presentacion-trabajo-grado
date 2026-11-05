@@ -683,7 +683,7 @@ def validacion(prs, nota=NOTA_VALIDACION, num=None):
     s = add_slide(prs)
     if num:
         s._num = num
-    encabezado(s, "03", "Antecedente 03 · La comparación manual",
+    encabezado(s, "03A", "Antecedente 03 · La comparación manual",
                "Validación de correspondencia", "Catálogo frente a publicación")
     with colores_literales():
         y0, h0 = 262, 486
@@ -745,6 +745,139 @@ def validacion(prs, nota=NOTA_VALIDACION, num=None):
     return s
 
 
+# ------------------------------------------------------------------ retailers
+GRUPOS = [
+    ("tienda", "MARKETPLACES", [("Amazon", "#FF9900"), ("Mercado Libre", "#FFE600"),
+                                ("Flipkart", "#2874F0"), ("Shopee", "#EE4D2D"),
+                                ("Lazada", "#F57224"), ("bol.", "#0000A4")], None),
+    ("monitor", "ELECTRÓNICA", [("MediaMarkt", "#DF0000"), ("Best Buy", "#0046BE"),
+                                ("Saturn", "#F27C00"), ("Euronics", "#1E3C8C"),
+                                ("Alza", "#1D59A8"), ("Komplett", "#F6C31B")], None),
+    ("carrito", "RETAIL", [("Falabella", "#AAD500"), ("Ripley", "#5A2C83"),
+                           ("Cdiscount", "#E6007E"), ("Darty", "#E30613"), ("OTTO", "#E3000F"),
+                           ("Trendyol", "#F27A1A"), ("Kroger", "#1C4BA0"), ("Coppel", "#FFD200"),
+                           ("Teknosa", "#F15A22"), ("takealot", "#0B79BF")], None),
+    ("bolsa", "PHILIPS STORES", [("Philips Store MX", AZUL), ("Philips Shop TW", AZUL),
+                                 ("Philips Sound Store DE", AZUL)],
+     ("Cadenas regionales", [("Krëfel", "#1D4F91"), ("Verkkokauppa.com", "#E2001A"),
+                             ("Tokmanni", "#E30613"), ("Whiteaway", "#1F5C3B"),
+                             ("Datart", "#0B2E6B")])),
+]
+NOTA_RETAILERS = (
+    "Philips no vende en un solo lugar. Sus productos aparecen en marketplaces globales como "
+    "Amazon, Mercado Libre o Shopee; en cadenas de electrónica como MediaMarkt o Best Buy; en "
+    "grandes tiendas como Falabella o Cdiscount; y en las tiendas propias de Philips y en "
+    "cadenas regionales. Cada comercio publica el mismo producto a su manera, y Agilsoft "
+    "tiene que reconocerlo en todos.")
+
+
+def _icono_extra(s, tipo, x, y, c=AZUL):
+    if tipo == "carrito":
+        rect(s, x + 10, y + 14, 30, 18, fill=None, line=c, line_w=3, radius=3)
+        line(s, x + 4, y + 9, x + 10, y + 14, color=c, width=3)
+        ellipse(s, x + 16, y + 38, 3.5, fill=c)
+        ellipse(s, x + 34, y + 38, 3.5, fill=c)
+    elif tipo == "bolsa":
+        rect(s, x + 9, y + 16, 30, 26, fill=c, radius=5)
+        ellipse(s, x + 24, y + 16, 8, fill=None, line=c, line_w=3)
+        t(s, x + 9, y + 22, 30, 16, "PH", size=18, bold=True, font=FONT_HEAD, color=BLANCO,
+          align="center", anchor="middle")
+    else:
+        icono(s, tipo, x, y, c)
+
+
+def _globo(s, cx, cy, r):
+    ellipse(s, cx, cy, r, fill=BLANCO, line=AZUL_C, line_w=5)
+    ovalo(s, cx - r * 0.45, cy - r, r * 0.9, 2 * r, fill=None, line_c=AZUL_C, lw=4)
+    rect(s, cx - 2, cy - r, 4, 2 * r, fill=AZUL_C)
+    rect(s, cx - r, cy - 2, 2 * r, 4, fill=AZUL_C)
+    for f in (-0.5, 0.5):
+        w = r * 2 * (1 - f * f) ** 0.5
+        rect(s, cx - w / 2, cy + f * r - 1.5, w, 3, fill=AZUL_C)
+
+
+DESCRIPCIONES = {
+    "MARKETPLACES": "Plataformas donde muchos vendedores publican el mismo producto",
+    "ELECTRÓNICA": "Cadenas especializadas en tecnología y electrodomésticos",
+    "RETAIL": "Grandes tiendas y comercio general",
+    "PHILIPS STORES": "Tiendas oficiales de la marca",
+}
+
+
+def _tam_que_cabe(nombre, ancho, size, minimo=15):
+    """Mayor tamaño (≤ size) con el que el nombre cabe en una línea."""
+    while size > minimo and text_width(nombre, size, FONT_HEAD, True) > ancho:
+        size -= 1
+    return size
+
+
+def _fila_comercios(s, x, y, w, comercios, cols, h=62, gap=14, size=22):
+    cw = (w - (cols - 1) * gap) / cols
+    for k, (nombre, color) in enumerate(comercios):
+        cx = x + (k % cols) * (cw + gap)
+        cy = y + (k // cols) * (h + gap)
+        rect(s, cx, cy, cw, h, fill=BLANCO, line=BORDE, line_w=1.5, radius=12)
+        rect(s, cx + 12, cy + h / 2 - 14, 7, 28, fill=color, radius=3)
+        tw = cw - 36
+        t(s, cx + 28, cy, tw + 4, h, nombre, size=_tam_que_cabe(nombre, tw - 4, size),
+          bold=True, font=FONT_HEAD, anchor="middle")
+    filas = (len(comercios) + cols - 1) // cols
+    return y + filas * (h + gap) - gap
+
+
+def _bloque(s, x, y, w, alto, comercios, cols, h_max=80, gap=14, size=22):
+    """Cuadrícula de comercios centrada en vertical dentro de `alto`."""
+    filas = (len(comercios) + cols - 1) // cols
+    h = min(h_max, (alto - (filas - 1) * gap) / filas)
+    usado = filas * h + (filas - 1) * gap
+    return _fila_comercios(s, x, y + (alto - usado) / 2, w, comercios, cols, h=h, gap=gap,
+                           size=size)
+
+
+def retailers(prs, nota=NOTA_RETAILERS, num=None):
+    s = add_slide(prs)
+    if num:
+        s._num = num
+    encabezado(s, "01A", "Antecedente 01 · La empresa y los comercios",
+               "Retailers del ecosistema", "Cuatro tipos de comercio")
+    with colores_literales():
+        cajas = [(96, 262, 800, 328), (1024, 262, 800, 328), (96, 622, 800, 388),
+                 (1024, 622, 800, 388)]
+        ccx, ccy = 960, 606
+        for (ic, nombre, comercios, extra), (x, y, w, h) in zip(GRUPOS, cajas):
+            rect(s, x, y, w, h, fill=TARJETA, line=AZUL_C, line_w=2, radius=18)
+            rect(s, x + 24, y + 20, 56, 56, fill=BLANCO, line=BORDE, line_w=1.5, radius=12)
+            _icono_extra(s, ic, x + 28, y + 24)
+            t(s, x + 96, y + 20, w - 200, 30, nombre, size=22, bold=True, font=FONT_HEAD,
+              spacing=3, anchor="middle")
+            t(s, x + 96, y + 50, w - 200, 28, DESCRIPCIONES[nombre], size=19, color=TINTA_2,
+              anchor="middle")
+            total = len(comercios) + (len(extra[1]) if extra else 0)
+            ovalo(s, x + w - 24 - 56, y + 24, 56, 48, fill=CHIP)
+            t(s, x + w - 24 - 56, y + 24, 56, 48, f"{total}", size=24, bold=True,
+              font=FONT_HEAD, color=AZUL, align="center", anchor="middle")
+            x0, ww = x + 24, w - 48
+            if extra:
+                yy = _fila_comercios(s, x0, y + 100, ww, comercios, 3, h=60, size=20)
+                rect(s, x0, yy + 16, ww, 1.5, fill=BORDE)
+                t(s, x0, yy + 24, 400, 26, extra[0].upper(), size=17, bold=True,
+                  font=FONT_HEAD, color=ORO, spacing=1.6, anchor="middle")
+                _bloque(s, x0, yy + 58, ww, y + h - 20 - (yy + 58), extra[1], 3, h_max=56,
+                        gap=12, size=20)
+            else:
+                cols = 3 if len(comercios) <= 6 else 4
+                _bloque(s, x0, y + 100, ww, h - 100 - 24, comercios, cols, h_max=80, size=22)
+        # globo central y conectores
+        for (x, y, w, h) in cajas:
+            ex = x + w if x < ccx else x
+            ey = y + h - 30 if y < ccy else y + 30
+            line(s, ccx + (-46 if x < ccx else 46), ccy + (-18 if y < ccy else 18), ex, ey,
+                 color=AZUL_C, width=2, dash="sysDot")
+        _globo(s, ccx, ccy, 48)
+    notes(s, nota)
+    return s
+
+
 # ------------------------------------------------------------------ orden en el mazo
 def construir_extraccion(prs, numeros=None):
     """Las cinco anatomías (van después del antecedente 02)."""
@@ -755,3 +888,8 @@ def construir_extraccion(prs, numeros=None):
 def construir_validacion(prs, numero=None):
     """La validación de correspondencia (va después del antecedente 03)."""
     validacion(prs, num=numero)
+
+
+def construir_retailers(prs, numero=None):
+    """Los retailers del ecosistema (va después del antecedente 01)."""
+    retailers(prs, num=numero)

@@ -5,12 +5,32 @@ pensado para importarse en Canva como diseño editable: los textos quedan como
 texto, las cajas como formas y los íconos como imágenes. Cada lámina lleva sus
 notas del orador tomadas de `GUION.md`.
 
-La versión por defecto tiene 75 láminas. Sigue el orden que dejó el autor en Canva,
+La versión por defecto tiene 76 láminas. Sigue el orden que dejó el autor en Canva,
 con sus diagramas (flujo lógico, BPMN AS-IS en dos partes, BPMN propuesto y
 subproceso), la lámina de tiempos manuales y la contrastación estadística (McNemar),
-y suma seis láminas de antecedentes que explican el product matching: la anatomía de
-cinco páginas retailer y la validación de correspondencia. Con `--completa` se obtiene
-la conversión directa de las 90 láminas originales en el estilo oscuro anterior.
+y suma siete tarjetas de antecedentes que explican el product matching. Cada tarjeta
+lleva el número de su antecedente más una letra:
+
+| Tarjeta | Lámina | Contenido | Va después de |
+|---|---|---|---|
+| 01A | 8 | Retailers del ecosistema: marketplaces, electrónica, retail y Philips Stores | 01 · La empresa |
+| 02A-02E | 10-14 | Anatomía de una página retailer (Amazon, MediaMarkt, Falabella, Mercado Libre, Best Buy) | 02 · La extracción automática |
+| 03A | 16 | Validación de correspondencia: criterio por criterio y los cuatro estados | 03 · La comparación manual |
+
+Con `--completa` se obtiene la conversión directa de las 90 láminas originales en el
+estilo oscuro anterior.
+
+## Numeración
+
+- El número del pie se asigna al crear cada lámina, así que insertar o quitar láminas no
+  deja números desfasados en el PPTX.
+- Las referencias cruzadas («los 4 títulos de la lámina 65») se escriben con
+  `pptx_kit.anclar(slide, clave)` en la lámina citada y `pptx_kit.lamina(clave)` donde se
+  cita.
+- `practico2/notas_autor.json` usa el número de lámina como clave: al insertar láminas
+  hay que correr las claves de las que quedan detrás.
+- En Canva el número del pie es texto fijo: al insertar páginas en el diseño hay que
+  renumerar las que se corren.
 
 ## Estilo
 
@@ -45,8 +65,8 @@ disponibles en Canva. Barlow reemplaza a Bahnschrift y Montserrat a Cambria.
 |---|---|
 | `pptx_kit.py` | Primitivas en píxeles: rectángulos, texto, imágenes, esquineros y transparencias. |
 | `theme.py` | Paleta, encabezado, paneles y distintivos numerados. |
-| `primera_parte.py` | Láminas 1-40: carátula, introducción, antecedentes, problema, formulación, objetivo, hipótesis, variables, matriz y marco teórico. |
-| `antecedentes_pm.py` | Antecedentes del product matching: anatomía de cinco páginas retailer (Amazon, MediaMarkt, Falabella, Mercado Libre y Best Buy) y la validación de correspondencia con los cuatro estados. |
+| `primera_parte.py` | Láminas 1-41: carátula, introducción, antecedentes, problema, formulación, objetivo, hipótesis, variables, matriz y marco teórico. |
+| `antecedentes_pm.py` | Tarjetas de antecedentes del product matching: retailers del ecosistema (01A), anatomía de cinco páginas retailer (02A-02E: Amazon, MediaMarkt, Falabella, Mercado Libre y Best Buy) y validación de correspondencia con los cuatro estados (03A). |
 | `practico.py` | Solo con `--completa` (láminas 35-90, estilo oscuro): convierte en formas y texto nativos las primitivas extraídas de `index.html`. |
 | `componentes.py` | Componentes del rediseño: tarjetas, cifras, chips, barras, flechas y ecuaciones con fracciones, sumatorias y exponentes. |
 | `practico2/` | OE1 rediseñado (`g0.py`: escala, metodologías, actores, diagramas del autor, tiempos y columnas), marco práctico (`g1.py` a `g6.py`), la lámina de McNemar (`mcnemar.py`), la guía de diseño, el contenido original de referencia, `check_cifras.py` (cada cifra debe existir en el original) y `preview.py`. |

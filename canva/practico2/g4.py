@@ -1,6 +1,6 @@
 """Grupo g4: OE4 · el recuperador y la duda del modelo; OE5 · Recall@1 en test (P12-P14)."""
 
-from pptx_kit import add_slide, corners, notes, rect, text
+from pptx_kit import add_slide, anclar, corners, notes, rect, text
 from theme import FONDO, LINE, MUTED, PAPER, YELLOW
 from componentes import (BLUE_LIGHT, CHIP, DARK, FONT_HEAD, FONT_MONO, FONT_TXT, PANEL_2, RED,
                          bar, card, chip, ecuacion, flecha, label, medida_ecuacion, numbadge,
@@ -357,6 +357,7 @@ def _col_falsos(s, x, y, w, h):
 def p13(prs, notas):
     """Láminas 70 + 71 + 72: score engañoso, margen como señal de duda y falsos positivos."""
     s = add_slide(prs, bg_image=FONDO)
+    anclar(s, "falsos_positivos")  # la matriz de confusión (g5) cita esta lámina
     subencabezado(s, OE4 + " · Cross-encoder",
                   "Dónde duda el modelo: el margen y los falsos positivos")
     y, h = 282, 1010 - 282

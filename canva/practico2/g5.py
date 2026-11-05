@@ -1,6 +1,6 @@
 """Grupo g5: OE5 · clasificación de pares, matriz y techo, evidencia externa (P15-P18)."""
 
-from pptx_kit import add_slide, line, notes, rect, text
+from pptx_kit import add_slide, lamina, line, notes, rect, text
 from theme import FONDO, LINE, MUTED, PAPER, YELLOW
 from componentes import (BLUE_LIGHT, CHIP, DARK, FONT_HEAD, FONT_MONO, FONT_TXT, RED,
                          bar, card, chip, ecuacion, flecha, label, medida_ecuacion, numbadge,
@@ -211,7 +211,7 @@ def _panel_matriz(s, x, y, w, h):
               [("222", "Verdaderos positivos", YELLOW, "VP", None),
                ("9", "Falsos negativos", RED, "FN", None)]),
              ("Real: no", "corresponde", "113 pares",
-              [("4", "Falsos positivos", RED, "FP", "los 4 títulos de la lámina 64"),
+              [("4", "Falsos positivos", RED, "FP", f"los 4 títulos de la lámina {lamina('falsos_positivos')}"),
                ("109", "Verdaderos negativos", BLUE_LIGHT, "VN", None)])]
     for i, (r1, r2, n, celdas) in enumerate(filas):
         ry = my + i * (ch + g)

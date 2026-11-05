@@ -4,16 +4,22 @@ Uso:
     python3 canva/construir.py                # versión en fondo blanco (por defecto)
     python3 canva/construir.py --completa     # 90 láminas originales convertidas (fondo oscuro)
 
-Versión por defecto (75 láminas, el orden de la versión editada por el autor en Canva):
-- 1-40: primera_parte.py (carátula a marco teórico), con las seis láminas de
-  antecedentes_pm.py: anatomía de cinco páginas retailer (9-13) y validación de
-  correspondencia (15).
-- 41-51: practico2/g0.py (OE1: escala, metodologías, actores, diagramas del autor,
+Versión por defecto (76 láminas, el orden de la versión editada por el autor en Canva):
+- 1-41: primera_parte.py (carátula a marco teórico), con las siete tarjetas de
+  antecedentes_pm.py: retailers del ecosistema (8, tarjeta 01A), anatomía de cinco páginas
+  retailer (10-14, tarjetas 02A-02E) y validación de correspondencia (16, tarjeta 03A).
+- 42-52: practico2/g0.py (OE1: escala, metodologías, actores, diagramas del autor,
   tiempos manuales y las 36 columnas por rol).
-- 52-75: marco práctico rediseñado (practico2/g1..g6 y la lámina de McNemar).
+- 53-76: marco práctico rediseñado (practico2/g1..g6 y la lámina de McNemar).
+
+Numeración: cada lámina toma su número al crearse (pie de página), y las referencias
+cruzadas se resuelven con pptx_kit.anclar/lamina, así que insertar láminas no deja
+números viejos. Las tarjetas de antecedentes llevan el número de su antecedente más una
+letra (01A, 02A-02E, 03A).
 
 Además escribe las animaciones de entrada del PPTX. Las gráficas quedan estáticas.
-Las notas del orador que el autor editó en Canva se toman de practico2/notas_autor.json.
+Las notas del orador que el autor editó en Canva se toman de practico2/notas_autor.json
+(claves = número de lámina; al insertar láminas hay que correr las claves).
 """
 
 import argparse

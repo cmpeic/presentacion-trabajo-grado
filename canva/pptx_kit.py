@@ -192,6 +192,21 @@ def new_presentation() -> Presentation:
     return prs
 
 
+ANCLAS: dict[str, int] = {}  # clave -> número de lámina, para referencias cruzadas
+
+
+def anclar(slide, clave: str) -> None:
+    """Registra el número de esta lámina bajo una clave."""
+    ANCLAS[clave] = slide._num
+
+
+def lamina(clave: str) -> int:
+    """Número de la lámina anclada con `clave` (debe construirse antes de citarla)."""
+    if clave not in ANCLAS:
+        raise KeyError(f"lámina sin anclar: {clave}")
+    return ANCLAS[clave]
+
+
 def add_slide(prs: Presentation, bg: str = "#07172D", bg_image: str | None = None):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     slide._num = len(prs.slides)
